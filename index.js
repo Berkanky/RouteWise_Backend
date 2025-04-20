@@ -57,5 +57,7 @@ wss.on("connection", (ws) => {
 });
 
 
-server.listen(PORT, () => {});
+server.listen(PORT, () => {
+  console.log("SERVER başlatıldı.");
+});
 module.exports = app;
