@@ -59,6 +59,7 @@ app.post(
         var { EMailAddress } = req.params;
 
         var VerificationId = await RegisterEmailVerification(EMailAddress);
+        console.log("Üretilmiş Verification ID : ", VerificationId);
         if( !VerificationId) return res.status(400).json({ message:' The verification code could not be sent, please try again.'});
 
         var Auth = await User.findOne({EMailAddress: EMailAddress});
