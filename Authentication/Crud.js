@@ -122,7 +122,7 @@ app.post(
 
         if( !authToken) return res.status(400).json({ message:' Verification code error, please resend the verification code for the registration process.'});
 
-        if( authToken.Token !== VerificationId) return res.status(400).json({ message:' The verification code did not match, please check the verification code.'});
+        if( authToken.Token != VerificationId) return res.status(400).json({ message:' The verification code did not match, please check the verification code.'});
         if( new Date() > new Date(String(authToken.TokenExpiredDate))) return res.status(400).json({ message:' The verification code has expired, please send the verification code again.'});
         
         var AuthTokenUpdate = {
