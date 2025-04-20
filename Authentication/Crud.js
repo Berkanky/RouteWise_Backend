@@ -145,18 +145,18 @@ app.post(
     AuthControl,
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
-        var { LoginData } = req.body;
+        var { RegisterData } = req.body;
 
-        if( !Object.keys(LoginData).length) return res.status(400).json({ message:' Please fill the required fieds.'});
+        if( !Object.keys(RegisterData).length) return res.status(400).json({ message:' Please fill the required fieds.'});
 
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
         if(!Auth.IsTemporary) return res.status(400).json({message:' An account already exists with this email address.'});
 
         var update = {
-            Name: aes256Encrypt(LoginData.Name),
-            Surname: aes256Encrypt(LoginData.Surname),
-            Password: await SCRYPTEncrypt(LoginData.Password),
+            Name: aes256Encrypt(RegisterData.Name),
+            Surname: aes256Encrypt(RegisterData.Surname),
+            Password: await SCRYPTEncrypt(RegisterData.Password),
             CreatedDate: new Date(),
             IsTemporary: false
         };
