@@ -11,8 +11,8 @@ const GetMimeTypeDetail = require("../MyFunctions/GetMimeTypeDetail");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 
 //Encryp Fonksiyonlar.
-var BCRYPTEncrypt = require("../EncryptModules/BCRYPTEncrypt");
-var BCRYPTCheck = require("../EncryptModules/BCRYPTCheck");
+var SCRYPTEncrypt = require("../EncryptModules/SCRYPTEncrypt");
+var BCRYPTCheck = require("../EncryptModules/SCRYPTCheck");
 var aes256Encrypt = require("../EncryptModules/AES256Encrypt");
 var aes256Decrypt = require("../EncryptModules/AES256Decrypt");
 
@@ -155,7 +155,7 @@ app.post(
         var update = {
             Name: aes256Encrypt(LoginData.Name),
             Surname: aes256Encrypt(LoginData.Surname),
-            Password: BCRYPTEncrypt(LoginData.Password),
+            Password: await SCRYPTEncrypt(LoginData.Password),
             CreatedDate: new Date(),
             IsTemporary: false
         };
