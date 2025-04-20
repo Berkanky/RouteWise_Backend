@@ -153,8 +153,8 @@ app.post(
         if(!Auth.IsTemporary) return res.status(400).json({message:' An account already exists with this email address.'});
 
         var update = {
-            Name: LoginData.Name,
-            Surname: LoginData.Surname,
+            Name: aes256Encrypt(LoginData.Name),
+            Surname: aes256Encrypt(LoginData.Surname),
             Password: BCRYPTEncrypt(LoginData.Password),
             CreatedDate: new Date(),
             IsTemporary: false
