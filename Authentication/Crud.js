@@ -92,7 +92,7 @@ app.post(
                 var update = {
                     $set:{
                         Token: VerificationId,
-                        TokenExpiredDate: CalculateExpireDate(0, 15)
+                        TokenExpiredDate: CalculateExpireDate({ hours: 0, minutes: 15})
                     }
                 };
 
