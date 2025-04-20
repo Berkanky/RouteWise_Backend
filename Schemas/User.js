@@ -22,11 +22,9 @@ const UserSchema = new mongoose.Schema({
     },
     Name:{
         type:String,
-        required:true
     },
     Surname:{
         type:String,
-        required:true
     },
     Bio:{
         type:String
