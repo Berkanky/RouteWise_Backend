@@ -266,7 +266,7 @@ app.post(
 
         await User.findOneAndUpdate(filter, update);
 
-        return res.status(200).json({ message:'Verification successful, please follow the instructions to finish the registration process.'});
+        return res.status(200).json({ message:'Verification successful, please follow the instructions to finish the login process.'});
     })
 );
 
@@ -293,7 +293,9 @@ app.post(
         
         if( !PasswordCheck) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
 
-        if( LoginData?.IsRemindDeviceActive){
+        var TrustedDevices = Auth.TrustedDevices;
+
+        if( LoginData.IsRemindDeviceActive){
             var DeviceDetails = LoginData.DeviceDetails;
             DeviceDetails.DeviceName = aes256Encrypt(DeviceDetails.DeviceName);
             DeviceDetails.Platform = aes256Encrypt(DeviceDetails.Platform);
@@ -303,28 +305,28 @@ app.post(
             DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
             DeviceDetails.Date = new Date();
 
-            if( Auth.TrustedDevices && Auth.TrustedDevices.length && !Auth.TrustedDevices.some(function(item){ return aes256Decrypt(item.DeviceId) == DeviceDetails.DeviceId })){
+            if( TrustedDevices && TrustedDevices.length && TrustedDevices.some(function(item){ return aes256Decrypt(item.DeviceId) == DeviceDetails.DeviceId })){
                 
                 DeviceDetails.DeviceId = aes256Encrypt(DeviceDetails.DeviceId);
-                Auth.TrustedDevices.push(DeviceDetails);
+                TrustedDevices.push(DeviceDetails);
             }else{
 
                 DeviceDetails.DeviceId = aes256Encrypt(DeviceDetails.DeviceId);
-                Auth.TrustedDevices = [DeviceDetails];
+                TrustedDevices = [DeviceDetails];
             }
         }
 
         var update = {
             $set:{
                 Active: true,
-                TrustedDevices: Auth.TrustedDevices
+                TrustedDevices: TrustedDevices
             },
             $unset:{
                 LastLoginDate: ''
             }
         };
 
-        var updatedAuth = await User.findOneAndUpdate(filter, update).lean();
+        var updatedAuth = await User.findOneAndUpdate(filter, update, {new: true}).lean();
         await CreateLog(req, res, Auth._id.toString(), Type);
 
         var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
