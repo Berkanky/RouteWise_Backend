@@ -1,3 +1,8 @@
+const AuthToken = require("../Schemas/AuthToken");
+
+const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
+
+
 async function CreateNewAuthToken(Auth, VerificationId, Type){
     var newAuthTokenObj = {
         UserId: Auth._id.toString(),
