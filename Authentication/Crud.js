@@ -40,6 +40,7 @@ const AuthToken = require("../Schemas/AuthToken");
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
 const CreateNewAuthToken = require("../InsertFunctions/CreateAuthToken");
+const CreateInvalidToken = require("../InsertFunctions/CreateInvalidToken");
 
 //Kayıt ol 2fa gönder.
 app.post(
@@ -335,6 +336,38 @@ app.post(
     })
 );
 
-//Calculate Servisi
+//Çıkış yap
+app.put(
+    '/logout/:EMailAddress',
+    rateLimiter,
+    EMailAddressControl,    
+    AuthControl,
+    AuthenticateJWTToken,
+    asyncHandler( async(req, res) => {
+        var { EMailAddress } = req.params;
+        var Type = 'Logout';
+        var filter = { EMailAddress: EMailAddress};
+        var Auth = await User.findOne(filter);
+
+        if( !Auth.Active || !Auth.TwoFAStatus) return res.status(400).json({ message:' The user session has already been successfully terminated.'}); 
+
+        var update = {
+            $set:{
+                Active: false,
+                TwoFAStatus: false
+            },
+            $unset:{
+                LastLoginDate: ''
+            }
+        };
+
+        await User.findOneAndUpdate(filter, update);
+        await CreateLog(req, res, Auth._id.toString(), Type);
+        await CreateInvalidToken(req, res, Auth._id.toString());
+
+        return res.status(200).json({ message:' Successfully logged out of the application.'});
+    })
+);
+
 
 module.exports = app;
