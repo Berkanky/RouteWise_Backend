@@ -65,7 +65,8 @@ userChangeStream.on("change", (change) => {
   console.log("Değişiklik yapılan kullanıcı : ", changedUserId);
   wss.clients.forEach((client) => {
     var ChangedAuthFields = change.updateDescription.updatedFields;
-    if(ChangedAuthFields.ProfileImage) ChangedAuthFields.ProfileImage = aes256Decrypt(ChangedAuthFields.ProfileImage, changedUserId);
+    console.log("Değişiklk yapılan bilgiler : ", JSON.stringify(ChangedAuthFields));
+    if(ChangedAuthFields.ProfileImage) ChangedAuthFields.ProfileImage = aes256Decrypt(ChangedAuthFields.ProfileImage);
     if ( client.readyState === WebSocket.OPEN && client.userId === changedUserId) client.send(JSON.stringify({ type: "UserUpdate", payload: ChangedAuthFields }));
   });
 });
