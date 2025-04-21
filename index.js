@@ -62,6 +62,7 @@ const userChangeStream = User.watch();
 
 userChangeStream.on("change", (change) => {
   var changedUserId = change.documentKey._id.toString();
+  console.log("Değişiklik yapılan kullanıcı : ", changedUserId);
   wss.clients.forEach((client) => {
     var ChangedAuthFields = change.updateDescription.updatedFields;
     if(ChangedAuthFields.ProfileImage) ChangedAuthFields.ProfileImage = aes256Decrypt(ChangedAuthFields.ProfileImage, changedUserId);
