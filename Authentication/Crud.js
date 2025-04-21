@@ -196,7 +196,7 @@ app.post(
 
         if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
         
-        Password = aes256Encrypt(Password);
+        Password = SCRYPTEncrypt(Password);
         if( Auth.Password !== Password) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
 
         var VerificationId = await LoginEmailVerification(EMailAddress);
@@ -288,7 +288,7 @@ app.post(
         if( !Auth.TwoFAStatus) return res.status(400).json({ message:' User 2FA verification is incomplete, please restart the login process.'});
         if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
         
-        Password = aes256Encrypt(Password);
+        Password = SCRYPTEncrypt(Password);
         if( Auth.Password !== Password) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
 
         if( LoginData?.IsRemindDeviceActive){
