@@ -18,18 +18,13 @@ const LogSchema = new mongoose.Schema({
         required:true
     },
     Action:{
-        type:String
+        type:String,
+        enum: enumList
     },
     Date:{
         type:Date
     },
     IPAddress:{
-        type:String
-    },
-    DeviceName:{
-        type:String
-    },
-    DeviceId: {
         type:String
     }
 });

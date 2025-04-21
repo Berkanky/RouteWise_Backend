@@ -4,6 +4,9 @@ const TrustedDevicesSchema = new mongoose.Schema(
     {
         DeviceName:{ type: String },
         Platform: { type: String },
+        Model: { type: String },
+        OperatingSystem: { type: String },
+        Manufacturer: { type: String },
         Type: { type: String },
         IPAddress: { type: String },
         DeviceId : { type: String },
