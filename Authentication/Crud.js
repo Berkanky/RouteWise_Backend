@@ -197,9 +197,9 @@ app.post(
         if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
         
         console.log("Ön yüzden gelen password : ", Password);
-        Password = SCRYPTEncrypt(Password);
+        Password = await SCRYPTEncrypt(Password);
         console.log("Ön yüzden gelen şifrelenmiş password : ", Password);
-        
+
         if( Auth.Password !== Password) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
 
         var VerificationId = await LoginEmailVerification(EMailAddress);
@@ -292,7 +292,7 @@ app.post(
         if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
         
         console.log("Ön yüzden gelen password : ", Password);
-        Password = SCRYPTEncrypt(Password);
+        Password = await SCRYPTEncrypt(Password);
         console.log("Ön yüzden gelen şifrelenmiş password : ", Password);
         
         if( Auth.Password !== Password) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
