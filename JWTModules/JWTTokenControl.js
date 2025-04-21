@@ -11,16 +11,16 @@ const AuthenticateJWTToken = async (req, res, next) => {
   var token =
     req.get("Authorization") && req.get("Authorization").split(" ")[1];
   jwt.verify(token, secret_key, async (err, user) => {
-    
-    var authTokenFilter = { UserId: Auth.id, JWTToken: token };
+
+    var { EMailAddress } = req.params;
+    var filter = { EMailAddress: EMailAddress };
+    var Auth = await User.findOne(filter);
+
+    var authTokenFilter = { UserId: Auth._id.toString(), JWTToken: token };
     var authToken = await Token.findOne(authTokenFilter);
     if( authToken) return res.status(403).json({ message:' Session has been terminated, please log in again.'});
 
     if (err) {
-      var { EMailAddress } = req.params;
-      var filter = { EMailAddress: EMailAddress };
-      var Auth = await User.findOne(filter);
-
       var update = {
         $set: {
           Active: false,
