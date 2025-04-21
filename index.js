@@ -48,6 +48,10 @@ wss.on("connection", (ws) => {
     try {
       var data = JSON.parse(msg);
 
+      if (data.UserData && data.UserData._id) {
+        ws.userId = data.UserData._id.toString();
+      }
+      
       if(!Object.keys(data).length) {
         ws.send(JSON.stringify(ClientSendedObject));
       }
