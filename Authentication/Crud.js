@@ -337,7 +337,7 @@ app.post(
 
         updatedAuth.TrustedDevices.forEach(function(row){
             for(var key in row){
-                if( !key == 'Date') row[key] = aes256Decrypt(row[key]);
+                if( key != 'Date') row[key] = aes256Decrypt(row[key]);
             }
         });
 
