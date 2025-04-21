@@ -1,108 +1,84 @@
 const sgMail = require("@sendgrid/mail");
-const createVerifyCode = require("../MyFunctions/GenerateVerifyCode");
+const createVerifyCode = require("../MyFunctions/GenerateVerifyCode"); // Bu fonksiyonun string döndürdüğünü varsayıyoruz
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const sendGridFromEMailAddress = process.env.EMAIL_ADDRESS;
-var VerificationId = createVerifyCode();
+var sendGridFromEMailAddress = process.env.EMAIL_ADDRESS;
 
 const SetPasswordEmail = async (EMailAddress) => {
+  var verificationCode = createVerifyCode();
+  var verificationCodeString = String(verificationCode);
+  var verificationDigits = verificationCodeString.split("");
+
+  var codeSpans = verificationDigits
+    .map(
+      (digit) =>
+        `<span style="display: inline-block; width: 35px; height: 45px; border: 1px solid #cccccc; border-radius: 4px; text-align: center; line-height: 45px; font-size: 20px; font-weight: bold; color: #333; margin-right: 8px;">${digit}</span>`
+    )
+    .join("");
+
   const msg = {
     to: EMailAddress,
-    from: sendGridFromEMailAddress, // Doğrulanmış e-posta adresiniz
-    subject: "SnapNote+ - Hesap şifresi değiştirme",
+    from: {
+      email: sendGridFromEMailAddress,
+      name: "RouteWise",
+    },
+    subject: "RouteWise Email Verification",
     html: `
-      <div style="
-        font-family: Arial, sans-serif; 
-        margin: 0; 
-        padding: 0; 
-        background-color: #f4f4f4;">
-        <table 
-          align="center" 
-          border="0" 
-          cellpadding="0" 
-          cellspacing="0" 
-          style="max-width: 600px; width: 100%; margin: 0 auto;">
-          
-          <!-- Başlık Kısmı -->
-          <tr>
-            <td 
-              style="
-                background-color: #4D2F7C; 
-                padding: 20px; 
-                text-align: center;">
-              <h1 style="color: #ffffff; margin: 0;">SnapNote+ - Şifre Kurtarma</h1>
-            </td>
-          </tr>
-          
-          <!-- Gövde Kısmı -->
-          <tr>
-            <td style="padding: 20px; background-color: #ffffff;">
-              
-              <p style="margin: 0; font-size: 16px;">
-                Merhaba <strong>${EMailAddress}</strong>,
-              </p>
-              
-              <p style="margin-top: 15px; font-size: 16px; line-height: 1.5;">
-                Hesabını kurtarmak için  aşağıdaki 
-                doğrulama kodunu, uygulamadaki ilgili alana girmen gerekiyor.
-              </p>
-              
-              <div style="
-                  margin-top: 25px;
-                  margin-bottom: 25px;
-                  padding: 15px;
-                  background-color: #f4f4f4;
-                  border: 2px dashed #4D2F7C;
-                  text-align: center;
-                  font-size: 18px;
-                  font-weight: bold;
-                  color: #4D2F7C;
-                ">
-                ${VerificationId}
-              </div> 
-              <p style="margin-top: 15px; font-size: 16px; line-height: 1.5;">
-                Eğer bu talep sana ait değilse, lütfen bu e-postayı dikkate alma.
-              </p>
-              <p style="margin-top: 15px; font-size: 16px; line-height: 1.5;">
-                Yardıma ihtiyacın olursa bizimle iletişime geçmekten çekinme.
-              </p>
-              <p style="margin-top: 20px; font-size: 16px; line-height: 1.5;">
-                Sevgiler,<br/>
-                <strong>SnapNote+ Ekibi</strong>
-              </p>
-              <p style="margin-top: 20px; font-size: 12px; color: #aaaaaa;">
-                Bu e-posta ${new Date().toLocaleString("tr-TR")} tarihinde oluşturulmuştur.
-              </p>
-              
-            </td>
-          </tr>
-          
-          <!-- Alt Kısım -->
-          <tr>
-            <td 
-              style="
-                background-color: #f4f4f4; 
-                padding: 20px; 
-                text-align: center;">
-              <p style="margin: 0; font-size: 14px; color: #aaaaaa;">
-                &copy; ${new Date().getFullYear()} SnapNote+. Tüm Hakları Saklıdır.
-              </p>
-            </td>
-          </tr>
-          
-        </table>
-      </div>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteWise Email Verification</title>
+</head>
+<body style="font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 20px;">
+
+    <div style="max-width: 600px; margin: 20px auto; padding: 30px; background-color: #ffffff; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+
+        <div class="logo-placeholder" style="min-height: 40px; margin-bottom: 25px; display: flex; align-items: center;">
+            <img src='https://routewisebackend-production.up.railway.app/registerLogo.png' alt=''/>
+        </div>
+
+        <p style="margin-bottom: 15px; font-size: 15px; color: #555; font-weight: bold;">Hi ${EMailAddress},</p>
+
+        <p style="margin-bottom: 15px; font-size: 15px; color: #555;">
+          We received a request to reset your password. To proceed, please enter the code below:
+        </p>
+
+        <div style="display: flex; align-items: center; gap: 15px; margin: 25px 0;">
+            <div style="display: flex; gap: 0px;"> ${codeSpans}</div>
+            <a href="#" target="_blank" style="background-color: #e74c3c; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: default; font-size: 14px; font-weight: bold; text-decoration: none; white-space: nowrap;">Kopyala</a>
+        </div>
+
+        <p style="font-size: 13px; color: #777777; margin-top: 25px;">
+           If you did not request a password reset, you can ignore this email. Need help? Feel free to contact us anytime
+        </p>
+         <p style="font-size: 13px; color: #777777; margin-top: 10px;">
+            Need help? Feel free to contact us anytime!
+         </p>
+
+        <p style="margin-top: 25px; font-size: 15px; color: #555;">
+           Best Regards,<br>
+           <strong>The RouteWise Team</strong>
+           
+        </p>
+
+        <div style="border-top: 1px solid #eeeeee; margin: 20px 0;"></div> <p style="font-size: 12px; color: #aaaaaa; text-align: right; margin-top: 10px; margin-bottom: 0;">
+           &copy; ${new Date().getFullYear()} RouteWise. All Rights Reserved.
+        </p>
+    </div>
+</body>
+</html>
     `,
   };
 
   try {
     await sgMail.send(msg);
-    return VerificationId;
+    return verificationCodeString;
   } catch (error) {
-    console.error("E-posta gönderilemedi:", error);
     if (error.response) console.error("Hata Detayları:", error.response.body);
-    return false;
+    return null;
   }
 };
 
