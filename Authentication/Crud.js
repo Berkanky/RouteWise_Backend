@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express.Router();
 
-
 //Fonksiyonlar.
 const getDeviceDetails = require("../MyFunctions/getDeviceDetails");
 const createVerifyCode = require("../MyFunctions/GenerateVerifyCode");
@@ -38,21 +37,9 @@ const CreateJWTToken = require("../JWTModules/CreateJWTToken");
 const User = require("../Schemas/User");
 const AuthToken = require("../Schemas/AuthToken");
 
-//Log Kaydı oluştur.
+//Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
-
-
-async function CreateNewAuthToken(Auth, VerificationId, Type){
-    var newAuthTokenObj = {
-        UserId: Auth._id.toString(),
-        TokenType: Type,
-        Token: VerificationId,
-        TokenExpiredDate: CalculateExpireDate(0, 15)
-    };
-    var newAuthToken = new AuthToken(newAuthTokenObj);
-    var createdNewAuthToken = await newAuthToken.save();
-    return createdNewAuthToken;
-};
+const CreateNewAuthToken = require("../InsertFunctions/CreateAuthToken");
 
 //Kayıt ol 2fa gönder.
 app.post(

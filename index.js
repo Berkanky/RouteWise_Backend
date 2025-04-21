@@ -6,6 +6,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
 
+const User = require("./Schemas/User");
+
 const { MONGODB_URI, PORT = 3000 } = process.env;
 
 mongoose
@@ -56,6 +58,16 @@ wss.on("connection", (ws) => {
   });
 });
 
+const userChangeStream = User.watch();
+
+userChangeStream.on("change", (change) => {
+  var changedUserId = change.documentKey._id.toString();
+  wss.clients.forEach((client) => {
+    var ChangedAuthFields = change.updateDescription.updatedFields;
+    if(ChangedAuthFields.ProfileImage) ChangedAuthFields.ProfileImage = aes256Decrypt(ChangedAuthFields.ProfileImage, changedUserId);
+    if ( client.readyState === WebSocket.OPEN && client.userId === changedUserId) client.send(JSON.stringify({ type: "UserUpdate", payload: ChangedAuthFields }));
+  });
+});
 
 server.listen(PORT, () => {
   console.log("SERVER başlatıldı.");

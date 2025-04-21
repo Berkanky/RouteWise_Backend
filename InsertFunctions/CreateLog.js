@@ -3,10 +3,10 @@ const getDeviceDetails = require("../MyFunctions/getDeviceDetails");
 
 const aes256Encrypt = require("../EncryptModules/AES256Encrypt");
 
-async function CreateLog(req, res, _id, Action){
+async function CreateLog(req, res, _id, Type){
     var newLogObj = {
         UserId: _id,
-        Action: Action,
+        Action: Type,
         Date: new Date(),
         IPAddress: aes256Encrypt(getDeviceDetails(req, res).IPAddress)
     };
