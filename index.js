@@ -46,7 +46,7 @@ const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
   ws.on("message", async (msg) => {
-    var ClientSendedObject = {payload:{message:"Payload sunucu tarafından iletildi."}, trustedDevices: {}};
+    var ClientSendedObject = {payload:{}, trustedDevices: {}};
     try {
       var data = JSON.parse(msg);
 
