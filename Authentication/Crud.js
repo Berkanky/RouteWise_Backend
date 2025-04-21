@@ -12,7 +12,7 @@ const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 
 //Encryp Fonksiyonlar.
 var SCRYPTEncrypt = require("../EncryptModules/SCRYPTEncrypt");
-var BCRYPTCheck = require("../EncryptModules/SCRYPTCheck");
+var SCRYPTCheck = require("../EncryptModules/SCRYPTCheck");
 var aes256Encrypt = require("../EncryptModules/AES256Encrypt");
 var aes256Decrypt = require("../EncryptModules/AES256Decrypt");
 
@@ -196,11 +196,9 @@ app.post(
 
         if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
         
-        console.log("Ön yüzden gelen password : ", Password);
-        Password = await SCRYPTEncrypt(Password);
-        console.log("Ön yüzden gelen şifrelenmiş password : ", Password);
+        var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
 
-        if( Auth.Password !== Password) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
+        if( !PasswordCheck) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
 
         var VerificationId = await LoginEmailVerification(EMailAddress);
         if( !VerificationId) return res.status(400).json({ message:' The verification code could not be sent, please try again.'});
@@ -291,11 +289,9 @@ app.post(
         if( !Auth.TwoFAStatus) return res.status(400).json({ message:' User 2FA verification is incomplete, please restart the login process.'});
         if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
         
-        console.log("Ön yüzden gelen password : ", Password);
-        Password = await SCRYPTEncrypt(Password);
-        console.log("Ön yüzden gelen şifrelenmiş password : ", Password);
+        var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
         
-        if( Auth.Password !== Password) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
+        if( !PasswordCheck) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
 
         if( LoginData?.IsRemindDeviceActive){
             var DeviceDetails = LoginData.DeviceDetails;
