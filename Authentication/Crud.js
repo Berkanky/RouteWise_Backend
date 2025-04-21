@@ -305,7 +305,7 @@ app.post(
             DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
             DeviceDetails.Date = new Date();
 
-            if( TrustedDevices && TrustedDevices.length && TrustedDevices.some(function(item){ return aes256Decrypt(item.DeviceId) == DeviceDetails.DeviceId })){
+            if( TrustedDevices && TrustedDevices.length && !TrustedDevices.some(function(item){ return aes256Decrypt(item.DeviceId) == DeviceDetails.DeviceId })){
                 
                 DeviceDetails.DeviceId = aes256Encrypt(DeviceDetails.DeviceId);
                 TrustedDevices.push(DeviceDetails);
@@ -337,7 +337,7 @@ app.post(
 
         updatedAuth.TrustedDevices.forEach(function(row){
             for(var key in row){
-                row[key] = aes256Decrypt(row[key]);
+                if( !key == 'Date') row[key] = aes256Decrypt(row[key]);
             }
         });
 
