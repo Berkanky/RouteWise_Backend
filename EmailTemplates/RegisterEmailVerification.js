@@ -6,7 +6,8 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 var sendGridFromEMailAddress = process.env.EMAIL_ADDRESS;
 
 const RegisterEmailVerification = async (EMailAddress) => {
-  var verificationCodeString = createVerifyCode();
+  var verificationCode = createVerifyCode();
+  var verificationCodeString = String(verificationCode);
   var verificationDigits = verificationCodeString.split("");
 
   var codeSpans = verificationDigits
