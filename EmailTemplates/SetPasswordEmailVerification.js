@@ -48,7 +48,6 @@ const SetPasswordEmail = async (EMailAddress) => {
 
         <div style="display: flex; align-items: center; gap: 15px; margin: 25px 0;">
             <div style="display: flex; gap: 0px;"> ${codeSpans}</div>
-            <a href="#" target="_blank" style="background-color: #e74c3c; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: default; font-size: 14px; font-weight: bold; text-decoration: none; white-space: nowrap;">Kopyala</a>
         </div>
 
         <p style="font-size: 13px; color: #777777; margin-top: 25px;">
