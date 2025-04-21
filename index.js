@@ -51,7 +51,7 @@ wss.on("connection", (ws) => {
       if (data.UserData && data.UserData._id) {
         ws.userId = data.UserData._id.toString();
       }
-      
+
       if(!Object.keys(data).length) {
         ws.send(JSON.stringify(ClientSendedObject));
       }
@@ -66,12 +66,14 @@ const userChangeStream = User.watch();
 
 userChangeStream.on("change", (change) => {
   var changedUserId = change.documentKey._id.toString();
-  console.log("Değişiklik yapılan kullanıcı : ", changedUserId);
   wss.clients.forEach((client) => {
     var ChangedAuthFields = change.updateDescription.updatedFields;
-    console.log("Değişiklk yapılan bilgiler : ", JSON.stringify(ChangedAuthFields));
+    
     if(ChangedAuthFields.ProfileImage) ChangedAuthFields.ProfileImage = aes256Decrypt(ChangedAuthFields.ProfileImage);
-    if ( client.readyState === WebSocket.OPEN && client.userId === changedUserId) client.send(JSON.stringify({ type: "UserUpdate", payload: ChangedAuthFields }));
+    
+    if ( client.readyState === WebSocket.OPEN && client.userId === changedUserId) {
+      client.send(JSON.stringify({ type: "UserUpdate", payload: ChangedAuthFields }));
+    }
   });
 });
 

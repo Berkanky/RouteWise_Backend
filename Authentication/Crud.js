@@ -247,7 +247,8 @@ app.post(
 
         var update = {
             $set:{
-                TwoFAStatus: true
+                TwoFAStatus: true,
+                Active: false
             }
         };
 
