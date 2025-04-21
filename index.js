@@ -66,7 +66,7 @@ userChangeStream.on("change", (change) => {
   wss.clients.forEach((client) => {
     var ChangedAuthFields = change.updateDescription.updatedFields;
     if(ChangedAuthFields.ProfileImage) ChangedAuthFields.ProfileImage = aes256Decrypt(ChangedAuthFields.ProfileImage, changedUserId);
-    if ( client.readyState === WebSocket.OPEN && client.userId === changedUserId) client.send(JSON.stringify({ type: "UserUpdate", payload: ChangedAuthFields }));
+    if ( client.userId === changedUserId) client.send(JSON.stringify({ type: "UserUpdate", payload: ChangedAuthFields }));
   });
 });
 
