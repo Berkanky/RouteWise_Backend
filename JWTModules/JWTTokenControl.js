@@ -8,8 +8,7 @@ const jwt = require("jsonwebtoken");
 var secret_key = process.env.SECRET_KEY;
 
 const AuthenticateJWTToken = async (req, res, next) => {
-  var token =
-    req.get("Authorization") && req.get("Authorization").split(" ")[1];
+  var token = req.get("Authorization") && req.get("Authorization").split(" ")[1];
   jwt.verify(token, secret_key, async (err, user) => {
 
     var { EMailAddress } = req.params;

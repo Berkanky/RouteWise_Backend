@@ -1,5 +1,9 @@
 const express = require("express");
 const app = express.Router();
+require("dotenv").config();
+
+//Firebase admin
+const admin = require('../FirebaseAdmin'); // orijinal path’e göre düzelt
 
 //Fonksiyonlar.
 const getDeviceDetails = require("../MyFunctions/getDeviceDetails");
@@ -369,5 +373,28 @@ app.put(
     })
 );
 
+
+app.get('/send-test', async (req, res) => {
+    try {
+      var fcmtoken = process.env.FIREBASE_FCM_KEY;
+      const message = {
+        "token": fcmtoken,
+        "notification":{
+          "title":"Portugal vs. Denmark",
+          "body":"great match!"
+        },
+        "data" : {
+          "Nick" : "Mario",
+          "Room" : "PortugalVSDenmark"
+        }
+      }
+      console.log('message : ', JSON.stringify(message));
+      const response = await admin.messaging().send(message);
+      res.send(`Gönderim başarılı: ${response}`);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Hata oluştu');
+    }
+});
 
 module.exports = app;
