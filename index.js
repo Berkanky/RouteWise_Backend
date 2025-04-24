@@ -20,7 +20,7 @@ mongoose
   .catch((err) => console.error("MongoDB bağlantı hatası:", err));
 
 
-var devOrigins = ['http://localhost:8100'];
+var devOrigins = ['http://localhost:8100', 'http://192.168.1.105:8100'];
 var prodOrigins = [
     'capacitor://localhost',
     'ionic://localhost'
