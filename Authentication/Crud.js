@@ -12,6 +12,7 @@ const FormatDateFunction = require("../MyFunctions/FormatDateFunction");
 const formatBytes = require("../MyFunctions/FormatFileSize");
 const GetMimeTypeDetail = require("../MyFunctions/GetMimeTypeDetail");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
+const PasswordRegex = rqeuire("../MyFunctions/PasswordRegex");
 
 //Encryp Fonksiyonlar.
 var SCRYPTEncrypt = require("../EncryptModules/SCRYPTEncrypt");
@@ -54,15 +55,15 @@ app.post(
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
         var Type = 'Register_Email_Verification';
+
         var VerificationId = await RegisterEmailVerification(EMailAddress);
-        console.log("Üretilmiş Verification ID : ", VerificationId);
-        if( !VerificationId) return res.status(400).json({ message:' The verification code could not be sent, please try again.'});
+        if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the verification code right now. Please try again in a few minutes.'});
 
         var Auth = await User.findOne({EMailAddress: EMailAddress});
 
         if( !Auth){
             var newUserObj = {
-                EMailAddress: EMailAddress,
+                EMailAddress: EMailAddress, 
                 IsTemporary: true
             };
 
@@ -70,10 +71,10 @@ app.post(
             var createdUser = await newUser.save();
 
             var createdNewAuthToken = await CreateNewAuthToken(createdUser, VerificationId, Type);
-            if( !createdNewAuthToken) return res.status(400).json({ message:' There was an error sending the verification code, please try again later.'});
+            if( !createdNewAuthToken) return res.status(500).json({ message:' Something went wrong on our end. Please refresh the page or try again shortly.'});
         }
 
-        if( Auth && !Auth.IsTemporary) return res.status(400).json({ message:' There is already a verified account with this email address.'});
+        if( Auth && !Auth.IsTemporary) return res.status(409).json({ message:' This email is already registered. Please log in or use a different email.'});
 
         if( Auth ){
 
@@ -82,7 +83,7 @@ app.post(
             if( !authToken){
 
                 var createdNewAuthToken = await CreateNewAuthToken(Auth, VerificationId, Type);
-                if( !createdNewAuthToken) return res.status(400).json({ message:' There was an error sending the verification code, please try again later.'});
+                if( !createdNewAuthToken) return res.status(500).json({ message:' We couldn’t refresh your verification code. Please request a new code.'});
             }else{
 
                 var update = {
@@ -96,7 +97,7 @@ app.post(
             }
         }
 
-        return res.status(200).json({ message:' The verification code has been sent successfully, please check your e-mail address.'});
+        return res.status(200).json({ message:' We’ve sent a verification code to your email. Please enter it to continue.'});
     })
 );
 
@@ -112,15 +113,15 @@ app.post(
         var Type = 'Register_Email_Verification';
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
-        if( Auth && !Auth.IsTemporary) return res.status(400).json({ message:' There is already a verified account with this email address.'});
+        if( Auth && !Auth.IsTemporary) return res.status(409).json({ message:' This email is already verified. Please log in instead.'});
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
         var authToken = await AuthToken.findOne(AuthTokenFilter);
 
-        if( !authToken) return res.status(400).json({ message:' Verification code error, please resend the verification code for the registration process.'});
+        if( !authToken) return res.status(404).json({ message:' No pending verification found. Please request a new code.'});
 
-        if( authToken.Token != VerificationId) return res.status(400).json({ message:' The verification code did not match, please check the verification code.'});
-        if( new Date() > new Date(String(authToken.TokenExpiredDate))) return res.status(400).json({ message:' The verification code has expired, please send the verification code again.'});
+        if( authToken.Token != VerificationId) return res.status(400).json({ message:' The code you entered is incorrect. Please check and try again.'});
+        if( new Date() > new Date(String(authToken.TokenExpiredDate))) return res.status(410).json({ message:' Your verification code has expired. Please request a new one.'});
         
         var AuthTokenUpdate = {
             $unset:{
@@ -131,12 +132,12 @@ app.post(
 
         await AuthToken.findOneAndUpdate(AuthTokenFilter, AuthTokenUpdate);
 
-        return res.status(200).json({ message:'Verification successful, please follow the instructions to finish the registration process.'});
+        return res.status(200).json({ message:' Your email has been verified! Please continue with the registration.'});
     })
 );
 
 //Kayıt ol
-app.post(
+app.post(   
     "/register/complete/:EMailAddress",
     rateLimiter,
     EMailAddressControl,
@@ -146,14 +147,23 @@ app.post(
         var { RegisterData } = req.body;
         var Type = 'Register';
 
-        console.log("Kayıt ol işlemi Kullanıcı bilgileri : ", JSON.stringify(RegisterData));
+        if( !Object.keys(RegisterData).length) return res.status(400).json({ message:' Please provide your name, surname and password to complete registration.'});
 
-        if( !Object.keys(RegisterData).length) return res.status(400).json({ message:' Please fill the required fieds.'});
+        // Name - Surname - Password zorunlu
+        var keyCounter = 0;
+        var required = ["Name", "Surname", "Password", "PasswordConfirm"];
+        for(var key in RegisterData) { 
+            if( required.some(function(item){ return item == key })) keyCounter += 1;
+        };
+        
+        if( keyCounter !== 3) return res.status(400).json({ message: `Missing required field${keyCounter> 1 ? 's' : ''}.` });
 
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
-        if(!Auth.IsTemporary) return res.status(400).json({message:' An account already exists with this email address.'});
+        if(!Auth.IsTemporary) return res.status(409).json({message:' An account with this email is already active. Please log in.'});
         
+        if( !PasswordRegex(RegisterData.Password)) return res.status(422).json({ message:' Your password does not meet our security requirements.'});
+
         var update = {
             Name: aes256Encrypt(RegisterData.Name),
             Surname: aes256Encrypt(RegisterData.Surname),
@@ -166,7 +176,7 @@ app.post(
         await User.findOneAndUpdate(filter, update);
         await CreateLog(req, res, Auth._id.toString(), Type);
 
-        return res.status(200).json({message:' The user has been successfully created, you can log in.'});
+        return res.status(200).json({message:' Your account has been created! You may now log in.'});
     })
 );
 
@@ -181,19 +191,19 @@ app.post(
         var { Password } = req.body;
         var Type = 'Login_Email_Verification';
 
-        if( !Password) return res.status(400).json({ message:' Please enter a valid password.'});
+        if( !Password) return res.status(400).json({ message:' Please provide your password to continue.'});
 
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
 
-        if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
+        if( Auth.IsTemporary) return res.status(409).json({ message:' Your registration isn’t complete yet. Please finish signing up first.'});
         
         var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
 
-        if( !PasswordCheck) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
+        if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
 
         var VerificationId = await LoginEmailVerification(EMailAddress);
-        if( !VerificationId) return res.status(400).json({ message:' The verification code could not be sent, please try again.'});
+        if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the code right now. Please try again in a few minutes.'});
 
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
@@ -201,7 +211,7 @@ app.post(
         if( !authToken){
 
             var createdNewAuthToken = await CreateNewAuthToken(Auth, VerificationId, Type);
-            if( !createdNewAuthToken) return res.status(400).json({ message:' There was an error sending the verification code, please try again later.'});
+            if( !createdNewAuthToken) return res.status(500).json({ message:' Unexpected error while generating the verification code. Please try again.'});
         }else{
 
             var update = {
@@ -214,7 +224,7 @@ app.post(
             await AuthToken.findOneAndUpdate(AuthTokenFilter, update);
         }           
 
-        return res.status(200).json({ message:' The verification code has been sent successfully, please check your e-mail address.'});
+        return res.status(200).json({ message:' erification code sent! Please check your email to proceed.'});
     })
 );
 
@@ -231,15 +241,15 @@ app.post(
 
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
-        if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
+        if( Auth.IsTemporary) return res.status(409).json({ message:' Registration isn’t complete. Please finish signing up first.'});
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
         var authToken = await AuthToken.findOne(AuthTokenFilter);
 
-        if( !authToken) return res.status(400).json({ message:' Verification code error, please resend the verification code for the registration process.'});
+        if( !authToken) return res.status(404).json({ message:' No verification request found. Please request a new code.'});
 
-        if( authToken.Token != VerificationId) return res.status(400).json({ message:' The verification code did not match, please check the verification code.'});
-        if( new Date() > new Date(String(authToken.TokenExpiredDate))) return res.status(400).json({ message:' The verification code has expired, please send the verification code again.'});
+        if( authToken.Token != VerificationId) return res.status(400).json({ message:' The code you entered is incorrect. Please try again.'});
+        if( new Date() > new Date(String(authToken.TokenExpiredDate))) return res.status(410).json({ message:' Your verification code has expired. Please request a new one.'});
         
         var AuthTokenUpdate = {
             $unset:{
@@ -259,7 +269,7 @@ app.post(
 
         await User.findOneAndUpdate(filter, update);
 
-        return res.status(200).json({ message:'Verification successful, please follow the instructions to finish the login process.'});
+        return res.status(200).json({ message:' Verification successful! Please proceed to complete login.'});
     })
 );
 
@@ -274,17 +284,17 @@ app.post(
         var { LoginData, Password } = req.body;
         var Type = 'Login';
 
-        if( !Password) return res.status(400).json({ message:' Please enter a valid password.'});
+        if( !Password) return res.status(400).json({ message:' Please provide your password to continue.'});
 
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
 
-        if( !Auth.TwoFAStatus) return res.status(400).json({ message:' User 2FA verification is incomplete, please restart the login process.'});
-        if( Auth.IsTemporary) return res.status(400).json({ message:' User verification is incomplete, please complete the registration process.'});
+        if( !Auth.TwoFAStatus) return res.status(403).json({ message:' 2FA verification is incomplete. Please restart login.'});
+        if( Auth.IsTemporary) return res.status(409).json({ message:' Registration is not complete. Please finish signing up.'});
         
         var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
         
-        if( !PasswordCheck) return res.status(400).json({ message:' User password did not match, please check your password and login again.'});
+        if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
 
         var TrustedDevices = Auth.TrustedDevices;
 
@@ -323,7 +333,7 @@ app.post(
         await CreateLog(req, res, Auth._id.toString(), Type);
 
         var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
-        if( !Token) return res.status(400).json({ message:' Session token could not be created, please try again.'});
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
 
         updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
         updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
@@ -334,9 +344,7 @@ app.post(
             }
         });
 
-        console.log("login servisinden dönen kullanıcı bilgileri : ", JSON.stringify(updatedAuth));
-
-        return res.status(200).json({message:' Login completed successfully, welcome.', Token, UserData: updatedAuth});
+        return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth});
     })
 );
 
@@ -353,7 +361,7 @@ app.put(
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
 
-        if( !Auth.Active || !Auth.TwoFAStatus) return res.status(400).json({ message:' The user session has already been successfully terminated.'}); 
+        if( !Auth.Active || !Auth.TwoFAStatus) return res.status(401).json({ message:' You are not currently logged in.'}); 
 
         var update = {
             $set:{
@@ -369,32 +377,8 @@ app.put(
         await CreateLog(req, res, Auth._id.toString(), Type);
         await CreateInvalidToken(req, res, Auth._id.toString());
 
-        return res.status(200).json({ message:' Successfully logged out of the application.'});
+        return res.status(200).json({ message:' You have been logged out successfully. Come back soon!'});
     })
 );
-
-
-app.get('/send-test', async (req, res) => {
-    try {
-      var fcmtoken = process.env.FIREBASE_FCM_KEY;
-      const message = {
-        "token": fcmtoken,
-        "notification":{
-          "title":"Portugal vs. Denmark",
-          "body":"great match!"
-        },
-        "data" : {
-          "Nick" : "Mario",
-          "Room" : "PortugalVSDenmark"
-        }
-      }
-      console.log('message : ', JSON.stringify(message));
-      const response = await admin.messaging().send(message);
-      res.send(`Gönderim başarılı: ${response}`);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Hata oluştu');
-    }
-});
 
 module.exports = app;

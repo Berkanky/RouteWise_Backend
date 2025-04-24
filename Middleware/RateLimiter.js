@@ -21,12 +21,8 @@ const rateLimiter = async (req, res, next) => {
     return next();
   }
 
-  if (ipData.count >= LIMIT) {
+  if (ipData.count >= LIMIT) return res.status(429).json({ message: " Too many requests! Please try again later." });
 
-    return res
-      .status(429)
-      .json({ message: "Çok fazla istek! Lütfen daha sonra tekrar deneyin." });
-  }
 
   ipData.count += 1;
   ipData.lastRequest = currentTime;

@@ -1,13 +1,12 @@
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
 const Token = require("../Schemas/InvalidToken");
 const User = require("../Schemas/User");
 
-const jwt = require("jsonwebtoken");
-
-var secret_key = process.env.SECRET_KEY;
-
 const AuthenticateJWTToken = async (req, res, next) => {
+  var secret_key = process.env.SECRET_KEY;
+
   var token = req.get("Authorization") && req.get("Authorization").split(" ")[1];
   jwt.verify(token, secret_key, async (err, user) => {
 
@@ -17,9 +16,10 @@ const AuthenticateJWTToken = async (req, res, next) => {
 
     var authTokenFilter = { UserId: Auth._id.toString(), JWTToken: token };
     var authToken = await Token.findOne(authTokenFilter);
-    if( authToken) return res.status(403).json({ message:' Session has been terminated, please log in again.'});
+    if( authToken) return res.status(401).json({ message:' Your session has ended. Please log in again.'});
 
     if (err) {
+
       var update = {
         $set: {
           Active: false,
@@ -28,25 +28,22 @@ const AuthenticateJWTToken = async (req, res, next) => {
         },
       };
 
+      var newTokenObj = {
+        UserId: Auth.id,
+        JWTToken: token,
+        JWTTokenExpireDate: new Date(),
+      };
+
+      var newToken = new Token(newTokenObj);
+
       await User.findOneAndUpdate(filter, update);
-
-      var authToken = await Token.findOne(authTokenFilter);
-      if (!authToken) {
-        var newTokenObj = {
-          UserId: Auth.id,
-          JWTToken: token,
-          JWTTokenExpireDate: new Date(),
-        };
-
-        var newToken = new Token(newTokenObj);
-        await newToken.save();
-      }
+      await newToken.save();
 
       return res
-        .status(403)
+        .status(401)
         .json({
           message:
-            "Kullanıcı geçici tokeni geçersiz, oturum zaman aşımına uğramış bulunmaktadır. Lütfen tekrar deneyiniz. ",
+            " Your session token is invalid or has expired. Please log in again.",
         });
     }
     req.user = user;
