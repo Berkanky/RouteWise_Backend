@@ -19,19 +19,17 @@ const RegisterUserSchema = Joi.object({
         "The password must contain at least one uppercase letter, one lowercase letter and one number.",
       "any.required": "The password is required.",
     }),
-  PasswordConfirm: Joi.string()
-    .min(8)
-    .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])"))
+
+  PasswordConfirm: Joi.any() 
+    .equal(Joi.ref("Password")) 
     .required()
     .messages({
-      "string.min": "The password must be at least 8 characters.",
-      "string.pattern.base":
-        "The password must contain at least one uppercase letter, one lowercase letter and one number.",
-      "any.required": "The password is required.",
+      "any.only": "Passwords do not match.",
+      "any.required": "Password confirmation is required."
     }),
 
   UserName: Joi.string().alphanum().min(3).max(30).optional(),
-  VerifySended: optional(),
+  VerifySended: Joi.boolean().optional(),
   Name: Joi.string().max(50).required(),
   Surname: Joi.string().max(50).required(),
 });
