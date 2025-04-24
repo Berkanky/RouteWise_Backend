@@ -42,6 +42,9 @@ const CreateJWTToken = require("../JWTModules/CreateJWTToken");
 const User = require("../Schemas/User");
 const AuthToken = require("../Schemas/AuthToken");
 
+//Joi Doğrulama Şemaları
+const RegisterUserSchema = require("../JoiSchemas/RegisterUserSchema");
+
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
 const CreateNewAuthToken = require("../InsertFunctions/CreateAuthToken");
@@ -147,6 +150,14 @@ app.post(
         var { RegisterData } = req.body;
         var Type = 'Register';
 
+        var { error, value } = RegisterUserSchema.validate(RegisterData, { abortEarly: false });
+
+        if( error) {
+
+            var errorMessages = error.details.map(detail => detail.message);
+            return res.status(400).json({errors: errorMessages});
+        }
+
         if( !Object.keys(RegisterData).length) return res.status(400).json({ message:' Please provide your name, surname and password to complete registration.'});
 
         // Name - Surname - Password zorunlu
@@ -170,7 +181,6 @@ app.post(
             Password: await SCRYPTEncrypt(RegisterData.Password),
             CreatedDate: new Date(),
             IsTemporary: false,
-
         };
 
         await User.findOneAndUpdate(filter, update);
