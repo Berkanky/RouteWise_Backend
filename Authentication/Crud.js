@@ -114,7 +114,7 @@ app.post(
         var { EMailAddress } = req.params;
         var { VerificationId } = req.body;
 
-        var { error, value } = RegisterTwoFASchema.validate({VerificationId: VerificationId}, { abortEarly: false });
+        var { error, value } = RegisterTwoFASchema.validate({ VerificationId: VerificationId }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var Type = 'Register_Email_Verification';
@@ -138,12 +138,11 @@ app.post(
         };
 
         await AuthToken.findOneAndUpdate(AuthTokenFilter, AuthTokenUpdate);
-
         return res.status(200).json({ message:' Your email has been verified! Please continue with the registration.'});
     })
 );
 
-//Kayıt ol
+//Kayıt ol servisi.
 app.post(   
     "/register/complete/:EMailAddress",
     rateLimiter,
