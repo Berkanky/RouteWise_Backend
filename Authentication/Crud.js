@@ -378,7 +378,7 @@ app.put(
 );
 
 //QuickAccess
-app.put(
+app.get(
     "/auto/login/devices/:DeviceId",
     rateLimiter,
     asyncHandler( async(req, res) => {
