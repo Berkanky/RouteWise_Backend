@@ -410,7 +410,6 @@ app.get(
         if( !TrustedDevices.length) return res.status(404).json({ message:' Saved device pairing failed.'});
 
         var AutoLoginDevice = TrustedDevices[0];
-        console.log("AutoLoginDevice : ", JSON.stringify(AutoLoginDevice));
         var EMailAddress = AutoLoginDevice["EMailAddress"];
         
         var filter = { EMailAddress: EMailAddress};
@@ -439,7 +438,7 @@ app.get(
                 if( key != 'Date') row[key] = aes256Decrypt(row[key]);
             }
         });
-        console.log("updatedAuth : ", JSON.stringify(updatedAuth));
+
         return res.status(200).json({message:' Accounts registered on this device have been identified.', Auth: updatedAuth, Token: Token});
     })
 );
