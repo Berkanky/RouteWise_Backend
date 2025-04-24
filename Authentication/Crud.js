@@ -386,7 +386,6 @@ app.get(
         if( !DeviceId) return res.status(404).json({message:' An error occurred while retrieving device information.'});
 
         var TrustedDevices = [];
-        var EncryptedDeviceId = aes256Encrypt(DeviceId);
 
         var Users = await User.find().lean();
         if( !Users.length) return res.status(404).json({ message:' User not found.'});
@@ -394,7 +393,7 @@ app.get(
         Users.forEach(function(row){
             if( 'TrustedDevices' in row && row["TrustedDevices"].length) {
                 row.TrustedDevices.forEach(function(device){
-                    if( device.DeviceId == EncryptedDeviceId) TrustedDevices.push( { _id: row._id.toString(), Name: row.Name, Surname: row.Surname, EMailAddress: row.EMailAddress } );
+                    if( aes256Decrypt(device.DeviceId) == DeviceId) TrustedDevices.push( { _id: row._id.toString(), Name: row.Name, Surname: row.Surname, EMailAddress: row.EMailAddress } );
                 });
             }
         });
