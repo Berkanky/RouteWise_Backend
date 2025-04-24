@@ -45,6 +45,8 @@ const AuthToken = require("../Schemas/AuthToken");
 //Joi Doğrulama Şemaları
 const RegisterUserSchema = require("../JoiSchemas/RegisterUserSchema");
 const RegisterTwoFASchema = require("../JoiSchemas/RegisterTwoFASchema");
+const LoginTwoFASchema = require("../JoiSchemas/LoginTwoFASchema");
+const LoginUserSchema = require("../JoiSchemas/LoginUserSchema");
 
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
@@ -235,8 +237,12 @@ app.post(
         var { VerificationId } = req.body;
         var Type = 'Login_Email_Verification';
 
+        var { error, value } = LoginTwoFASchema.validate({ VerificationId: VerificationId }, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
+
         if( Auth.IsTemporary) return res.status(409).json({ message:' Registration isn’t complete. Please finish signing up first.'});
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
@@ -277,10 +283,13 @@ app.post(
     AuthControl,
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
-        var { LoginData, Password } = req.body;
-        var Type = 'Login';
+        var { LoginData  } = req.body;
 
-        if( !Password) return res.status(400).json({ message:' Please provide your password to continue.'});
+        var { error, value } = LoginUserSchema.validate(LoginData, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        var Type = 'Login';
+        var Password = LoginData.Password;
 
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
