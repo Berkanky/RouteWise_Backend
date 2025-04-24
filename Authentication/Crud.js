@@ -44,6 +44,7 @@ const AuthToken = require("../Schemas/AuthToken");
 
 //Joi Doğrulama Şemaları
 const RegisterUserSchema = require("../JoiSchemas/RegisterUserSchema");
+const RegisterTwoFASchema = require("../JoiSchemas/RegisterTwoFASchema");
 
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
@@ -99,7 +100,6 @@ app.post(
                 await AuthToken.findOneAndUpdate(AuthTokenFilter, update);
             }
         }
-
         return res.status(200).json({ message:' We’ve sent a verification code to your email. Please enter it to continue.'});
     })
 );
@@ -113,6 +113,10 @@ app.post(
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
         var { VerificationId } = req.body;
+
+        var { error, value } = RegisterTwoFASchema.validate(VerificationId, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
         var Type = 'Register_Email_Verification';
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
@@ -152,29 +156,12 @@ app.post(
 
         var { error, value } = RegisterUserSchema.validate(RegisterData, { abortEarly: false });
 
-        if( error) {
-
-            var errorMessages = error.details.map(detail => detail.message);
-            return res.status(400).json({errors: errorMessages});
-        }
-
-        if( !Object.keys(RegisterData).length) return res.status(400).json({ message:' Please provide your name, surname and password to complete registration.'});
-
-        // Name - Surname - Password zorunlu
-        var keyCounter = 0;
-        var required = ["Name", "Surname", "Password", "PasswordConfirm"];
-        for(var key in RegisterData) { 
-            if( required.some(function(item){ return item == key })) keyCounter += 1;
-        };
-        
-        if( keyCounter !== 3) return res.status(400).json({ message: `Missing required field${keyCounter> 1 ? 's' : ''}.` });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
         if(!Auth.IsTemporary) return res.status(409).json({message:' An account with this email is already active. Please log in.'});
         
-        if( !PasswordRegex(RegisterData.Password)) return res.status(422).json({ message:' Your password does not meet our security requirements.'});
-
         var update = {
             Name: aes256Encrypt(RegisterData.Name),
             Surname: aes256Encrypt(RegisterData.Surname),
