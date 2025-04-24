@@ -397,9 +397,11 @@ app.get(
             if( 'TrustedDevices' in row && row["TrustedDevices"].length) {
                 row.TrustedDevices.forEach(function(device){
 
-                    if( aes256Decrypt(device.DeviceId) == DeviceId) {
-                        TrustedDevice = { _id: row._id.toString(), Name: aes256Decrypt(row.Name), Surname: aes256Decrypt(row.Surname), EMailAddress: row.EMailAddress };
-                        TrustedDevices.push(TrustedDevice);
+                    if( device.DeviceId ){
+                        if( aes256Decrypt(device.DeviceId) == DeviceId) {
+                            TrustedDevice = { _id: row._id.toString(), Name: aes256Decrypt(row.Name), Surname: aes256Decrypt(row.Surname), EMailAddress: row.EMailAddress };
+                            TrustedDevices.push(TrustedDevice);
+                        }
                     }
                 });
             }
@@ -408,7 +410,7 @@ app.get(
         if( !TrustedDevices.length) return res.status(404).json({ message:' Saved device pairing failed.'});
 
         var AutoLoginDevice = TrustedDevices[0];
-
+        console.log("AutoLoginDevice : ", JSON.stringify(AutoLoginDevice));
         var EMailAddress = AutoLoginDevice["EMailAddress"];
         
         var filter = { EMailAddress: EMailAddress};
@@ -424,7 +426,7 @@ app.get(
         };
 
         var updatedAuth = await User.findOneAndUpdate(filter, update, { new: true }).lean();
-        await CreateLog(req, res, updatedAuth._id.toString(), Type);
+        //await CreateLog(req, res, updatedAuth._id.toString(), Type);
 
         var Token = await CreateJWTToken(req, res, EMailAddress, updatedAuth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
@@ -437,7 +439,7 @@ app.get(
                 if( key != 'Date') row[key] = aes256Decrypt(row[key]);
             }
         });
-
+        console.log("updatedAuth : ", JSON.stringify(updatedAuth));
         return res.status(200).json({message:' Accounts registered on this device have been identified.', Auth: updatedAuth, Token: Token});
     })
 );
