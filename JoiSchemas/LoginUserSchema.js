@@ -22,7 +22,8 @@ const LoginUserSchema = Joi.object({
 
   Verified: Joi.boolean().optional(),
   VerifySended: Joi.boolean().optional(),
-  DeviceDetails: Joi.object().optional()
+  DeviceDetails: Joi.object().optional(),
+  IsRemindDeviceActive: Joi.boolean().optional()
 });
 
 module.exports = LoginUserSchema;
