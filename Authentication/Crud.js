@@ -383,6 +383,7 @@ app.get(
     rateLimiter,
     asyncHandler( async(req, res) => {
         var { DeviceId } = req.params;
+        var Type = "Auto_Login";
         if( !DeviceId) return res.status(404).json({message:' An error occurred while retrieving device information.'});
 
         var TrustedDevices = [];
@@ -390,16 +391,54 @@ app.get(
         var Users = await User.find().lean();
         if( !Users.length) return res.status(404).json({ message:' User not found.'});
 
+        var TrustedDevice = {};
+        
         Users.forEach(function(row){
             if( 'TrustedDevices' in row && row["TrustedDevices"].length) {
                 row.TrustedDevices.forEach(function(device){
-                    if( aes256Decrypt(device.DeviceId) == DeviceId) TrustedDevices.push( { _id: row._id.toString(), Name: row.Name, Surname: row.Surname, EMailAddress: row.EMailAddress } );
+
+                    if( aes256Decrypt(device.DeviceId) == DeviceId) {
+                        TrustedDevice = { _id: row._id.toString(), Name: aes256Decrypt(row.Name), Surname: aes256Decrypt(row.Surname), EMailAddress: row.EMailAddress };
+                        TrustedDevices.push(TrustedDevice);
+                    }
                 });
             }
         });
-
+        
         if( !TrustedDevices.length) return res.status(404).json({ message:' Saved device pairing failed.'});
-        return res.status(200).json({message:' Accounts registered on this device have been identified.', TrustedDevices: TrustedDevices});
+
+        var AutoLoginDevice = TrustedDevices[0];
+
+        var EMailAddress = AutoLoginDevice["EMailAddress"];
+        
+        var filter = { EMailAddress: EMailAddress};
+
+        var update = {
+            $set:{
+                Active: true,
+                TwoFAStatus: true
+            },
+            $unset:{
+                LastLoginDate: ''
+            }
+        };
+
+        var updatedAuth = await User.findOneAndUpdate(filter, update, { new: true }).lean();
+        await CreateLog(req, res, updatedAuth._id.toString(), Type);
+
+        var Token = await CreateJWTToken(req, res, EMailAddress, updatedAuth._id.toString());
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
+
+        updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
+        updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
+
+        updatedAuth.TrustedDevices.forEach(function(row){
+            for(var key in row){
+                if( key != 'Date') row[key] = aes256Decrypt(row[key]);
+            }
+        });
+
+        return res.status(200).json({message:' Accounts registered on this device have been identified.', Auth: updatedAuth, Token: Token});
     })
 );
 
