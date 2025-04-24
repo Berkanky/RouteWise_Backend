@@ -379,7 +379,7 @@ app.put(
 
 //QuickAccess
 app.put(
-    "/auto/login/:DeviceId",
+    "/auto/login/devices/:DeviceId",
     rateLimiter,
     asyncHandler( async(req, res) => {
         var { DeviceId } = req.params;
