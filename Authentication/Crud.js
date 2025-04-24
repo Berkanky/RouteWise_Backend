@@ -426,7 +426,7 @@ app.get(
         };
 
         var updatedAuth = await User.findOneAndUpdate(filter, update, { new: true }).lean();
-        //await CreateLog(req, res, updatedAuth._id.toString(), Type);
+        await CreateLog(req, res, updatedAuth._id.toString(), Type);
 
         var Token = await CreateJWTToken(req, res, EMailAddress, updatedAuth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
