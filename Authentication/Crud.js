@@ -12,7 +12,7 @@ const FormatDateFunction = require("../MyFunctions/FormatDateFunction");
 const formatBytes = require("../MyFunctions/FormatFileSize");
 const GetMimeTypeDetail = require("../MyFunctions/GetMimeTypeDetail");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
-const PasswordRegex = rqeuire("../MyFunctions/PasswordRegex");
+const PasswordRegex = require("../MyFunctions/PasswordRegex");
 
 //Encryp Fonksiyonlar.
 var SCRYPTEncrypt = require("../EncryptModules/SCRYPTEncrypt");
