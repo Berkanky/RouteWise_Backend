@@ -377,4 +377,31 @@ app.put(
     })
 );
 
+//QuickAccess
+app.put(
+    "/auto/login/:DeviceId",
+    rateLimiter,
+    asyncHandler( async(req, res) => {
+        var { DeviceId } = req.params;
+        if( !DeviceId) return res.status(404).json({message:' An error occurred while retrieving device information.'});
+
+        var TrustedDevices = [];
+        var EncryptedDeviceId = aes256Encrypt(DeviceId);
+
+        var Users = await User.find().lean();
+        if( !Users.length) return res.status(404).json({ message:' Saved device pairing failed.'});
+
+        Users.forEach(function(row){
+            if( 'TrustedDevices' in row && row["TrustedDevices"].length) {
+                row.TrustedDevices.forEach(function(device){
+                    if( device.DeviceId == EncryptedDeviceId) TrustedDevices.push( { _id: row._id.toString(), Name: row.Name, Surname: row.Surname, EMailAddress: row.EMailAddress } );
+                });
+            }
+        });
+
+        if( !TrustedDevices.length) return res.status(404).json({ message:' Saved device pairing failed.'});
+        return res.status(200).json({message:' Accounts registered on this device have been identified.'});
+    })
+);
+
 module.exports = app;
