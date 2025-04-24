@@ -389,7 +389,7 @@ app.get(
         var EncryptedDeviceId = aes256Encrypt(DeviceId);
 
         var Users = await User.find().lean();
-        if( !Users.length) return res.status(404).json({ message:' Saved device pairing failed.'});
+        if( !Users.length) return res.status(404).json({ message:' User not found.'});
 
         Users.forEach(function(row){
             if( 'TrustedDevices' in row && row["TrustedDevices"].length) {
@@ -400,7 +400,7 @@ app.get(
         });
 
         if( !TrustedDevices.length) return res.status(404).json({ message:' Saved device pairing failed.'});
-        return res.status(200).json({message:' Accounts registered on this device have been identified.'});
+        return res.status(200).json({message:' Accounts registered on this device have been identified.', TrustedDevices: TrustedDevices});
     })
 );
 
