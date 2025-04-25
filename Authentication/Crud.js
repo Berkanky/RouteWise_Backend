@@ -411,7 +411,25 @@ app.put(
 
         console.log("Yakalanan kullanıcı : ", JSON.stringify(refreshToken));
 
-        return res.status(200).json({ message:' Registered device detected, you are being redirected.'});
+        var update = {
+            $set:{
+                Active: true
+            },
+            $unset:{
+                LastLoginDate: ''
+            }
+        };
+
+        var Auth = await User.findByIdAndUpdate(refreshToken.UserId, update, { new :true }).lean();
+
+        Auth.Name = aes256Decrypt(Auth.Name);
+        Auth.Surname = aes256Decrypt(Auth.Surname);
+        Auth.TrustedDevices = [];
+
+        var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
+
+        return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token});
     })
 );
 

@@ -3,6 +3,7 @@ const RefreshToken = require("../Schemas/RefreshToken");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 
 async function InsertRefreshToken(_id, CreatedSHA256RefreshToken){
+    
     var newRefreshTokenObj = {
         UserId: _id,
         Token: CreatedSHA256RefreshToken,
@@ -14,11 +15,13 @@ async function InsertRefreshToken(_id, CreatedSHA256RefreshToken){
 };  
 
 async function DeleteExpiredRefreshToken(_id, ExpiredRefreshTokenId){
+
     var filter = { UserId: _id, _id: ExpiredRefreshTokenId};
     await RefreshToken.findOneAndDelete(filter);
 };
 
 async function CreateRefreshTokenFunction(req, res, _id) {
+
     var CreatedSHA256RefreshToken = CreateRefreshToken();
     var refreshTokenFilter = { UserId: _id };
     var refreshToken = await RefreshToken.findOne(refreshTokenFilter);
@@ -35,7 +38,6 @@ async function CreateRefreshTokenFunction(req, res, _id) {
     }else{
         RefreshTokenAvaliable = true;
     }
-
 
     return RefreshTokenAvaliable ? refreshToken.Token  : CreatedSHA256RefreshToken
 };  
