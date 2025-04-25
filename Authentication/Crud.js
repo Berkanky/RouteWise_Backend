@@ -325,7 +325,7 @@ app.post(
         var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
 
-        if( LoginData.IsRemindDeviceActive) CreatedRefreshToken = await CreateRefreshTokenFunction(req, res, Auth._id.toString()).RefreshTokenDecrypted;
+        if( LoginData.IsRemindDeviceActive) CreatedRefreshToken = (await CreateRefreshTokenFunction(req, res, Auth._id.toString())).RefreshTokenDecrypted;
 
         var update = {
             $set:{
