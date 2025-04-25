@@ -57,7 +57,7 @@ const AutoLoginSchema = require("../JoiSchemas/AutoLoginSchema");
 const CreateLog = require("../InsertFunctions/CreateLog");
 const CreateNewAuthToken = require("../InsertFunctions/CreateAuthToken");
 const CreateInvalidToken = require("../InsertFunctions/CreateInvalidToken");
-const CreateRefreshToken = require("../InsertFunctions/CreateRefreshToken");
+const CreateRefreshTokenFunction = require("../InsertFunctions/CreateRefreshToken");
 
 //Kayıt ol 2fa gönder.
 app.post(
@@ -332,7 +332,7 @@ app.post(
                 TrustedDevices = [DeviceDetails];
             }
 
-            var CreatedRefreshTokenObj = await CreateRefreshToken(req, res, Auth._id.toString());
+            var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString());
             var CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
         }
 
