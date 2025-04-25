@@ -397,6 +397,7 @@ app.put(
     asyncHandler( async(req, res) => {
 
         var { DeviceId, Token} = req.body;
+        var Type = "Auto_Login";
 
         var { error, value } = AutoLoginSchema.validate({ DeviceId, Token }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
@@ -426,6 +427,8 @@ app.put(
 
         var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
+
+        await CreateLog(req, res, Auth._id.toString(), Type);
 
         return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token});
     })
