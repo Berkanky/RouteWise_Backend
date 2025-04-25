@@ -2,6 +2,9 @@ const express = require("express");
 const app = express.Router();
 require("dotenv").config();
 
+//Crypto
+const crypto = require('crypto');
+
 //Firebase admin
 const admin = require('../FirebaseAdmin'); // orijinal path’e göre düzelt
 
@@ -329,7 +332,8 @@ app.post(
                 TrustedDevices = [DeviceDetails];
             }
 
-            var CreatedSHA256RefreshToken = await CreateRefreshToken(req, res, Auth._id.toString());
+            var CreatedRefreshTokenObj = await CreateRefreshToken(req, res, Auth._id.toString());
+            var CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
         }
 
         var update = {
@@ -355,7 +359,7 @@ app.post(
             }
         }); */
 
-        return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedSHA256RefreshToken});
+        return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken});
     })
 );
 
@@ -402,13 +406,11 @@ app.put(
         var { error, value } = AutoLoginSchema.validate({ DeviceId, Token }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        var RefreshTokenFilter = { Token: Token };
+        var RefreshTokenFilter = { Token: crypto.createHash('sha256').update(Token).digest('hex') };
 
         var refreshToken = await RefreshToken.findOne(RefreshTokenFilter).lean();
         if( !refreshToken) return res.status(401).json({ message:' Please log in again.'});
         if( new Date() > new Date(String(refreshToken.ExpiredDate))) return res.status(410).json({ message:' Session expired, please log in again.'});
-
-        console.log("Yakalanan kullanıcı : ", JSON.stringify(refreshToken));
 
         var update = {
             $set:{
