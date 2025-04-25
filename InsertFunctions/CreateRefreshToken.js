@@ -2,24 +2,34 @@ const CreateRefreshToken = require("../JWTModules/CreateRefreshToken");
 const RefreshToken = require("../Schemas/RefreshToken");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 
-async function CreateRefreshTokenFunction(req, res, _id) {
+async function InsertRefreshToken(_id, CreatedSHA256RefreshToken){
+    var newRefreshTokenObj = {
+        UserId: _id,
+        Token: CreatedSHA256RefreshToken,
+        ExpiredDate: CalculateExpireDate({ hours: 5, minutes: 0})
+    };
 
+    var newRefreshToken = new RefreshToken(newRefreshTokenObj);
+    await newRefreshToken.save();
+};  
+
+async function DeleteExpiredRefreshToken(_id, ExpiredRefreshTokenId){
+    var filter = { UserId: _id, _id: ExpiredRefreshTokenId};
+    await RefreshToken.findOneAndDelete(filter);
+};
+
+async function CreateRefreshTokenFunction(req, res, _id) {
+    var CreatedSHA256RefreshToken = CreateRefreshToken();
     var refreshTokenFilter = { UserId: _id };
     var refreshToken = await RefreshToken.findOne(refreshTokenFilter);
     
-    if( !refreshToken || new Date() > new Date(String(refreshToken.ExpiredDate))) {
-        var CreatedSHA256RefreshToken = CreateRefreshToken();
-        var newRefreshTokenObj = {
-            UserId: _id,
-            Token: CreatedSHA256RefreshToken,
-            ExpiredDate: CalculateExpireDate({ hours: 5, minutes: 0})
-        };
+    if( !refreshToken) await InsertRefreshToken(_id, CreatedSHA256RefreshToken);
 
-        var newRefreshToken = new RefreshToken(newRefreshTokenObj);
-        await newRefreshToken.save();
-    }
+    if( refreshToken && new Date() > new Date(String(refreshToken.ExpiredDate))) await DeleteExpiredRefreshToken(_id, refreshToken._id.toString());
     
-    return
+    if( new Date() > new Date(String(refreshToken.ExpiredDate))) await InsertRefreshToken(_id, CreatedSHA256RefreshToken);
+
+    return CreatedSHA256RefreshToken
 };
 
 module.exports = CreateRefreshTokenFunction;
