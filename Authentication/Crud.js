@@ -41,6 +41,7 @@ const CreateJWTToken = require("../JWTModules/CreateJWTToken");
 //Şemalar
 const User = require("../Schemas/User");
 const AuthToken = require("../Schemas/AuthToken");
+const RefreshToken = require("../Schemas/RefreshToken");
 
 //Joi Doğrulama Şemaları
 const RegisterUserSchema = require("../JoiSchemas/RegisterUserSchema");
@@ -52,6 +53,7 @@ const LoginUserSchema = require("../JoiSchemas/LoginUserSchema");
 const CreateLog = require("../InsertFunctions/CreateLog");
 const CreateNewAuthToken = require("../InsertFunctions/CreateAuthToken");
 const CreateInvalidToken = require("../InsertFunctions/CreateInvalidToken");
+const CreateRefreshToken = require("../InsertFunctions/CreateRefreshToken");
 
 //Kayıt ol 2fa gönder.
 app.post(
@@ -301,6 +303,9 @@ app.post(
         
         if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
 
+        var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
+
         var TrustedDevices = Auth.TrustedDevices;
 
         if( LoginData.IsRemindDeviceActive){
@@ -317,11 +322,13 @@ app.post(
                 
                 DeviceDetails.DeviceId = aes256Encrypt(DeviceDetails.DeviceId);
                 TrustedDevices.push(DeviceDetails);
-            }else{
+            }else if( !TrustedDevices.length){
 
                 DeviceDetails.DeviceId = aes256Encrypt(DeviceDetails.DeviceId);
                 TrustedDevices = [DeviceDetails];
             }
+
+            await CreateRefreshToken(req, res, Auth._id.toString());
         }
 
         var update = {
@@ -337,17 +344,15 @@ app.post(
         var updatedAuth = await User.findOneAndUpdate(filter, update, {new: true}).lean();
         await CreateLog(req, res, Auth._id.toString(), Type);
 
-        var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
-        if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
-
         updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
         updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
+        updatedAuth.TrustedDevices = [];
 
-        updatedAuth.TrustedDevices.forEach(function(row){
+        /* updatedAuth.TrustedDevices.forEach(function(row){
             for(var key in row){
                 if( key != 'Date') row[key] = aes256Decrypt(row[key]);
             }
-        });
+        }); */
 
         return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth});
     })
@@ -386,7 +391,7 @@ app.put(
     })
 );
 
-//QuickAccess
+//Hızlı giriş.
 app.get(
     "/auto/login/devices/:DeviceId",
     rateLimiter,
