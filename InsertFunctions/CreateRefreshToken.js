@@ -34,7 +34,7 @@ async function CreateRefreshTokenFunction(req, res, _id, EMailAddress) {
   if (refreshToken) {
 
     await DeleteExpiredRefreshToken(_id, refreshToken._id.toString());
-    await InsertRefreshToken(_id, EMailAddress, CreatedRefreshTokenEncrypted);
+    await InsertRefreshToken( _id, EMailAddress, CreatedRefreshTokenEncrypted);
 
   }else{
 

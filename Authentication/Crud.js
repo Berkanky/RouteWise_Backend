@@ -327,8 +327,8 @@ app.post(
 
         if( LoginData.IsRemindDeviceActive) {
 
-           // var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString(), EMailAddress);
-           // CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
+           var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString(), EMailAddress);
+           CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
         }
 
         var update = {
