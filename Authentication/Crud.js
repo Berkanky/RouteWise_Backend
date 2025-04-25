@@ -291,6 +291,8 @@ app.post(
         var { EMailAddress } = req.params;
         var { LoginData  } = req.body;
 
+        var CreatedRefreshToken;
+
         var { error, value } = LoginUserSchema.validate(LoginData, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
@@ -333,7 +335,7 @@ app.post(
             }
 
             var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString());
-            var CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
+            CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
         }
 
         var update = {
@@ -352,12 +354,6 @@ app.post(
         updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
         updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
         updatedAuth.TrustedDevices = [];
-
-        /* updatedAuth.TrustedDevices.forEach(function(row){
-            for(var key in row){
-                if( key != 'Date') row[key] = aes256Decrypt(row[key]);
-            }
-        }); */
 
         return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken});
     })
