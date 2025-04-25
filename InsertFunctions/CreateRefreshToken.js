@@ -2,10 +2,11 @@ const CreateRefreshToken = require("../JWTModules/CreateRefreshToken");
 const RefreshToken = require("../Schemas/RefreshToken");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 
-async function InsertRefreshToken(_id, CreatedRefreshTokenEncrypted) {
+async function InsertRefreshToken(_id, EMailAddress, CreatedRefreshTokenEncrypted) {
   var newRefreshTokenObj = {
     UserId: _id,
     Token: CreatedRefreshTokenEncrypted,
+    EMailAddresss: EMailAddress,
     ExpiredDate: CalculateExpireDate({ hours: 120, minutes: 0 }),
   };
 
@@ -20,9 +21,10 @@ async function DeleteExpiredRefreshToken(_id, ExpiredRefreshTokenId) {
 }
 
 async function CreateRefreshTokenFunction(req, res, _id) {
+  var { EMailAddress } = req.params;
   var CreatedRefreshTokenEncrypted, CreatedRefreshTokenDecrypted;
 
-  var refreshTokenFilter = { UserId: _id };
+  var refreshTokenFilter = { EMailAddress: EMailAddress };
   var refreshToken = await RefreshToken.findOne(refreshTokenFilter);
 
   var CreatedRefreshTokenObj = CreateRefreshToken();
@@ -32,7 +34,7 @@ async function CreateRefreshTokenFunction(req, res, _id) {
   if (refreshToken) {
 
     await DeleteExpiredRefreshToken(_id, refreshToken._id.toString());
-    await InsertRefreshToken(_id, CreatedRefreshTokenEncrypted);
+    await InsertRefreshToken(_id, EMailAddress, CreatedRefreshTokenEncrypted);
 
   }else{
 

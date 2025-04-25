@@ -5,6 +5,10 @@ const RefreshTokenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    EMailAddress:{
+        type: String,
+        required: true
+    },
     Token:{
         type: String,
         required: true
