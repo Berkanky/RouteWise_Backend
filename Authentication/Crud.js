@@ -372,8 +372,6 @@ app.put(
         var filter = { EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
 
-        if( !Auth.Active || !Auth.TwoFAStatus) return res.status(401).json({ message:' You are not currently logged in.'}); 
-
         var update = {
             $set:{
                 Active: false,
