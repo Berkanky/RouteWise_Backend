@@ -38,7 +38,7 @@ async function CreateRefreshTokenFunction(req, res, _id) {
 
   }else{
 
-    await InsertRefreshToken(_id, CreatedRefreshTokenEncrypted);
+    await InsertRefreshToken(_id, EMailAddress, CreatedRefreshTokenEncrypted);
   }
 
   return {
