@@ -302,7 +302,7 @@ app.post(
     AuthControl,
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
-        var { LoginData,   } = req.body;
+        var { LoginData } = req.body;
 
         var CreatedRefreshToken;
 

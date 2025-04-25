@@ -3,6 +3,7 @@ const RefreshToken = require("../Schemas/RefreshToken");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 
 async function InsertRefreshToken(_id, EMailAddress, CreatedRefreshTokenEncrypted) {
+  console.log("InsertRefreshToken fonksiyon : ", JSON.stringify({_id, EMailAddress, CreatedRefreshTokenEncrypted}));
   var newRefreshTokenObj = {
     UserId: _id,
     Token: CreatedRefreshTokenEncrypted,
