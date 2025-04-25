@@ -8,7 +8,7 @@ async function CreateNewAuthToken(Auth, VerificationId, Type){
         UserId: Auth._id.toString(),
         TokenType: Type,
         Token: VerificationId,
-        TokenExpiredDate: CalculateExpireDate(0, 15)
+        TokenExpiredDate: CalculateExpireDate({hours:0, minutes: 15})
     };
     var newAuthToken = new AuthToken(newAuthTokenObj);
     var createdNewAuthToken = await newAuthToken.save();
