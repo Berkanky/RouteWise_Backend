@@ -406,6 +406,8 @@ app.put(
         var { error, value } = AutoLoginSchema.validate({ DeviceId, Token }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
+        console.log("Ön yüzden gelen şifreli Refresh Token : ", crypto.createHash('sha256').update(Token).digest('hex'));
+        console.log("Ön yüzden gelen şifresiz Refresh Token : ", Token);
         var RefreshTokenFilter = { Token: crypto.createHash('sha256').update(Token).digest('hex') };
 
         var refreshToken = await RefreshToken.findOne(RefreshTokenFilter).lean();
