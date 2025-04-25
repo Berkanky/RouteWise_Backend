@@ -398,12 +398,12 @@ app.put(
     rateLimiter,
     asyncHandler( async(req, res) => {
 
-        var { DeviceId, RefreshToken } = req.body;
+        var { DeviceId, Token} = req.body;
 
-        var { error, value } = AutoLoginSchema.validate({ DeviceId, RefreshToken }, { abortEarly: false });
+        var { error, value } = AutoLoginSchema.validate({ DeviceId, Token }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        var RefreshTokenFilter = { Token: RefreshToken };
+        var RefreshTokenFilter = { Token: Token };
 
         var refreshToken = await RefreshToken.findOne(RefreshTokenFilter).lean();
         if( !refreshToken) return res.status(401).json({ message:' Please log in again.'});
