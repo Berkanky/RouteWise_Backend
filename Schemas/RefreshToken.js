@@ -2,16 +2,20 @@ const mongoose = require('mongoose');
 
 const RefreshTokenSchema = new mongoose.Schema({
     UserId:{
-        type: String
+        type: String,
+        required: true
     },
     EMailAddress:{
-        type: String
+        type: String,
+        required: true
     },
     Token:{
-        type: String
+        type: String,
+        required: true
     },
     ExpiredDate:{
-        type: Date
+        type: Date,
+        required: true
     }
 });
 

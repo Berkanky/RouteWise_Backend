@@ -7,7 +7,7 @@ async function InsertRefreshToken(_id, EMailAddress, CreatedRefreshTokenEncrypte
   var newRefreshTokenObj = {
     UserId: _id,
     Token: CreatedRefreshTokenEncrypted,
-    EMailAddresss: EMailAddress,
+    EMailAddress: EMailAddress,
     ExpiredDate: CalculateExpireDate({ hours: 120, minutes: 0 }),
   };
 
