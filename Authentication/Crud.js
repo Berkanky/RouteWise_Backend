@@ -393,7 +393,7 @@ app.put(
 );
 
 //Hızlı giriş.
-app.get(
+app.put(
     "/auto/login",
     rateLimiter,
     asyncHandler( async(req, res) => {
