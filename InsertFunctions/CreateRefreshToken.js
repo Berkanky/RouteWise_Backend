@@ -25,9 +25,11 @@ async function CreateRefreshTokenFunction(req, res, _id) {
     
     if( !refreshToken) await InsertRefreshToken(_id, CreatedSHA256RefreshToken);
 
-    if( refreshToken && new Date() > new Date(String(refreshToken.ExpiredDate))) await DeleteExpiredRefreshToken(_id, refreshToken._id.toString());
-    
-    if( new Date() > new Date(String(refreshToken.ExpiredDate))) await InsertRefreshToken(_id, CreatedSHA256RefreshToken);
+    if( refreshToken && new Date() > new Date(String(refreshToken.ExpiredDate))) {
+        
+        await DeleteExpiredRefreshToken(_id, refreshToken._id.toString());
+        await InsertRefreshToken(_id, CreatedSHA256RefreshToken);
+    }
 
     return CreatedSHA256RefreshToken
 };
