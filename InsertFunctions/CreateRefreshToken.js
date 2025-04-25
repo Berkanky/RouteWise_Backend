@@ -6,7 +6,7 @@ async function InsertRefreshToken(_id, CreatedRefreshTokenEncrypted) {
   var newRefreshTokenObj = {
     UserId: _id,
     Token: CreatedRefreshTokenEncrypted,
-    ExpiredDate: CalculateExpireDate({ hours: 5, minutes: 0 }),
+    ExpiredDate: CalculateExpireDate({ hours: 120, minutes: 0 }),
   };
 
   var newRefreshToken = new RefreshToken(newRefreshTokenObj);

@@ -12,6 +12,20 @@ var enumList = [
     'Auto_Login'
 ];
 
+const TrustedDevicesSchema = new mongoose.Schema(
+    {
+        DeviceName:{ type: String },
+        Platform: { type: String },
+        Model: { type: String },
+        OperatingSystem: { type: String },
+        Manufacturer: { type: String },
+        Type: { type: String },
+        IPAddress: { type: String },
+        DeviceId : { type: String },
+        Date: { type: Date }
+    }
+);
+
 const LogSchema = new mongoose.Schema({
     UserId:{
         type:String,
@@ -24,9 +38,7 @@ const LogSchema = new mongoose.Schema({
     Date:{
         type:Date
     },
-    IPAddress:{
-        type:String
-    }
+    DeviceDetails:[TrustedDevicesSchema]
 });
 
 const Log = mongoose.model('Log', LogSchema);

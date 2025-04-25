@@ -282,6 +282,19 @@ app.post(
 );
 
 //Giriş yap.
+function EncryptDeviceDetails(req, res, DeviceDetails){
+
+    DeviceDetails.DeviceName = aes256Encrypt(DeviceDetails.DeviceName);
+    DeviceDetails.Platform = aes256Encrypt(DeviceDetails.Platform);
+    DeviceDetails.Model = aes256Encrypt(DeviceDetails.Model);
+    DeviceDetails.OperatingSystem = aes256Encrypt(DeviceDetails.OperatingSystem);
+    DeviceDetails.Manufacturer = aes256Encrypt(DeviceDetails.Manufacturer);
+    DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
+    DeviceDetails.Date = new Date();
+
+    return DeviceDetails
+};
+
 app.post(
     '/login/:EMailAddress',
     rateLimiter,
@@ -289,7 +302,7 @@ app.post(
     AuthControl,
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
-        var { LoginData  } = req.body;
+        var { LoginData,   } = req.body;
 
         var CreatedRefreshToken;
 
@@ -312,36 +325,11 @@ app.post(
         var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
 
-        var TrustedDevices = Auth.TrustedDevices;
-
-        if( LoginData.IsRemindDeviceActive){
-            var DeviceDetails = LoginData.DeviceDetails;
-            DeviceDetails.DeviceName = aes256Encrypt(DeviceDetails.DeviceName);
-            DeviceDetails.Platform = aes256Encrypt(DeviceDetails.Platform);
-            DeviceDetails.Model = aes256Encrypt(DeviceDetails.Model);
-            DeviceDetails.OperatingSystem = aes256Encrypt(DeviceDetails.OperatingSystem);
-            DeviceDetails.Manufacturer = aes256Encrypt(DeviceDetails.Manufacturer);
-            DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
-            DeviceDetails.Date = new Date();
-
-            if( TrustedDevices && TrustedDevices.length && !TrustedDevices.some(function(item){ return aes256Decrypt(item.DeviceId) == DeviceDetails.DeviceId })){
-                
-                DeviceDetails.DeviceId = aes256Encrypt(DeviceDetails.DeviceId);
-                TrustedDevices.push(DeviceDetails);
-            }else if( !TrustedDevices.length){
-
-                DeviceDetails.DeviceId = aes256Encrypt(DeviceDetails.DeviceId);
-                TrustedDevices = [DeviceDetails];
-            }
-
-            var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString());
-            CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
-        }
+        if( LoginData.IsRemindDeviceActive) CreatedRefreshToken = await CreateRefreshTokenFunction(req, res, Auth._id.toString()).RefreshTokenDecrypted;
 
         var update = {
             $set:{
-                Active: true,
-                TrustedDevices: TrustedDevices
+                Active: true
             },
             $unset:{
                 LastLoginDate: ''
@@ -349,11 +337,10 @@ app.post(
         };
 
         var updatedAuth = await User.findOneAndUpdate(filter, update, {new: true}).lean();
-        await CreateLog(req, res, Auth._id.toString(), Type);
+        await CreateLog(req, res, Auth._id.toString(), Type, EncryptDeviceDetails(req, res, LoginData.DeviceDetails));
 
         updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
         updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
-        updatedAuth.TrustedDevices = [];
 
         return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken});
     })
@@ -423,7 +410,6 @@ app.put(
 
         Auth.Name = aes256Decrypt(Auth.Name);
         Auth.Surname = aes256Decrypt(Auth.Surname);
-        Auth.TrustedDevices = [];
 
         var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});

@@ -1,19 +1,5 @@
 const mongoose = require('mongoose');
 
-const TrustedDevicesSchema = new mongoose.Schema(
-    {
-        DeviceName:{ type: String },
-        Platform: { type: String },
-        Model: { type: String },
-        OperatingSystem: { type: String },
-        Manufacturer: { type: String },
-        Type: { type: String },
-        IPAddress: { type: String },
-        DeviceId : { type: String },
-        Date: { type: Date }
-    }
-)
-
 const UserSchema = new mongoose.Schema({
     EMailAddress:{
         type:String,
@@ -58,8 +44,7 @@ const UserSchema = new mongoose.Schema({
     },
     IsRemindDeviceActive:{
         type:Boolean
-    },
-    TrustedDevices:[TrustedDevicesSchema]   
+    }
 });
 
 const User = mongoose.model('User', UserSchema);
