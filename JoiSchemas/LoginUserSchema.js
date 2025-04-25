@@ -20,10 +20,18 @@ const LoginUserSchema = Joi.object({
       "any.required": "The password is required.",
     }),
 
-  Verified: Joi.boolean().optional(),
-  VerifySended: Joi.boolean().optional(),
-  DeviceDetails: Joi.object().optional(),
-  IsRemindDeviceActive: Joi.boolean().optional()
+  Verified: Joi.boolean().optional().messages({
+    "any.required": "Verified is required.",
+  }),
+  VerifySended: Joi.boolean().optional().messages({
+    "any.required": "VerifySended is required.",
+  }),
+  DeviceDetails: Joi.object().optional().messages({
+    "any.required": "DeviceDetails is required.",
+  }),
+  IsRemindDeviceActive: Joi.boolean().optional().messages({
+    "any.required": "IsRemindDeviceActive is required.",
+  })
 });
 
 module.exports = LoginUserSchema;
