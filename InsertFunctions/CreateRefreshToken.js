@@ -22,16 +22,16 @@ async function CreateRefreshTokenFunction(req, res, _id) {
     var CreatedSHA256RefreshToken = CreateRefreshToken();
     var refreshTokenFilter = { UserId: _id };
     var refreshToken = await RefreshToken.findOne(refreshTokenFilter);
-    
+    console.log("Bulunan refresh token : ", JSON.stringify(refreshToken));
     if( !refreshToken) await InsertRefreshToken(_id, CreatedSHA256RefreshToken);
 
     if( refreshToken && new Date() > new Date(String(refreshToken.ExpiredDate))) {
-        
+
         await DeleteExpiredRefreshToken(_id, refreshToken._id.toString());
         await InsertRefreshToken(_id, CreatedSHA256RefreshToken);
     }
 
     return CreatedSHA256RefreshToken
-};
+};  
 
 module.exports = CreateRefreshTokenFunction;
