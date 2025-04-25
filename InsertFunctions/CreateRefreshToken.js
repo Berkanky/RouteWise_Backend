@@ -21,8 +21,7 @@ async function DeleteExpiredRefreshToken(_id, ExpiredRefreshTokenId) {
   await RefreshToken.findOneAndDelete(filter);
 }
 
-async function CreateRefreshTokenFunction(req, res, _id) {
-  var { EMailAddress } = req.params;
+async function CreateRefreshTokenFunction(req, res, _id, EMailAddress) {
   var CreatedRefreshTokenEncrypted, CreatedRefreshTokenDecrypted;
 
   var refreshTokenFilter = { EMailAddress: EMailAddress };

@@ -326,7 +326,7 @@ app.post(
         if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
 
         if( LoginData.IsRemindDeviceActive) {
-            var CreatedRefreshTokenObj = (await CreateRefreshTokenFunction(req, res, Auth._id.toString()));
+            var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString(), EMailAddress);
             CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
         }
 
