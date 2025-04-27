@@ -52,6 +52,8 @@ const RegisterTwoFASchema = require("../JoiSchemas/RegisterTwoFASchema");
 const LoginTwoFASchema = require("../JoiSchemas/LoginTwoFASchema");
 const LoginUserSchema = require("../JoiSchemas/LoginUserSchema");
 const AutoLoginSchema = require("../JoiSchemas/AutoLoginSchema");
+const SetPasswordTwoFASchema = require("../JoiSchemas/SetPasswordTwoFASchema");
+const SetPasswordUserSchema = require("../JoiSchemas/SetPasswordUserSchema");
 
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
@@ -162,7 +164,6 @@ app.post(
         var Type = 'Register';
 
         var { error, value } = RegisterUserSchema.validate(RegisterData, { abortEarly: false });
-
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var filter = { EMailAddress: EMailAddress};
@@ -421,6 +422,118 @@ app.put(
         await CreateLog(req, res, Auth._id.toString(), Type);
 
         return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token});
+    })
+);
+
+//Şifre yenile 2fa gönder
+app.post(
+    "/set/password/verification/:EMailAddress",
+    rateLimiter,
+    EMailAddressControl,
+    AuthControl,
+    asyncHandler( async(req, res) => {
+        var { EMailAddress } = req.params;
+
+        var Type = 'Set_Password';
+
+        var filter = { EMailAddress: EMailAddress };
+        var Auth = await User.findOne(filter);
+
+        var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type };
+
+        var authToken = await AuthToken.findOne(AuthTokenFilter);
+
+        var VerificationId = await SetPasswordEmailVerification(Auth.EMailAddress);
+        if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the verification code right now. Please try again in a few minutes.'});
+
+        if( !authToken){
+
+            await CreateNewAuthToken(Auth, VerificationId, Type);
+        }else{
+            var update = {
+                $set:{
+                    Token: VerificationId,
+                    TokenExpiredDate: CalculateExpireDate({hours:0, minutes: 15})
+                }
+            };
+            await AuthToken.findOneAndUpdate(AuthTokenFilter, update);
+        }
+
+        return res.status(200).json({ message:' We’ve sent a verification code to your email. Please enter it to continue.'});
+    })
+);
+
+//Şifre yenile 2fa onayla
+app.post(
+    "/set/password/confirm",
+    rateLimiter,
+    EMailAddressControl,
+    AuthControl,
+    asyncHandler( async(req, res) => {
+        var { EMailAddress } = req.params;
+        var { VerificationId } = req.body;
+
+        var Type = "Set_Password";
+
+        var { error, value } = SetPasswordTwoFASchema.validate({ VerificationId: VerificationId }, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        var filter = { EMailAddress: EMailAddress};
+        var Auth = await User.findOne(filter);
+
+        var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
+        var authToken = await AuthToken.findOne(AuthTokenFilter);
+
+        if( !authToken) return res.status(404).json({ message:' No pending verification found. Please request a new code.'});
+
+        if( authToken.Token != VerificationId) return res.status(400).json({ message:' The code you entered is incorrect. Please check and try again.'});
+        if( new Date() > new Date(String(authToken.TokenExpiredDate))) return res.status(410).json({ message:' Your verification code has expired. Please request a new one.'});
+        
+        var update = {
+            $unset:{
+                Token:'',
+                TokenExpiredDate: ''
+            }
+        };
+
+        await AuthToken.findOneAndUpdate(AuthTokenFilter, update);
+
+        return res.status(200).json({ message:' Your email has been verified! Please continue with the reset password.'});
+    })
+);
+
+//Şifre yenile
+app.put(
+    "/set/password/:EMailAddress",
+    rateLimiter,
+    EMailAddressControl,
+    AuthControl,
+    asyncHandler( async(req, res) => {
+        var { EMailAddress } = req.params;
+        var { Password, PasswordConfirm} = req.body;
+
+        var Type = "Set_Password";
+
+        var { error, value } = SetPasswordUserSchema.validate({ Password: Password, PasswordConfirm: PasswordConfirm}, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        var filter = { EMailAddress: EMailAddress };
+        var Auth = await User.findOne(filter);
+
+        var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
+        if( PasswordCheck) return res.status(400).json({ message:' Please enter a different password than your old password.'});
+
+        var update = {
+            $set: {
+                Password: await SCRYPTEncrypt(Password),
+                UpdatedDate: new Date()
+            }
+        };
+
+        await User.findOneAndUpdate(filter, update);
+        await CreateLog(req, res, Auth._id.toString(), Type, {});
+
+        return res.status(200).json({ message:' Your password has been successfully updated, you can log in using your new password.'});
     })
 );
 
