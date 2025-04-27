@@ -427,7 +427,7 @@ app.put(
 
 //Şifre yenile 2fa gönder
 app.post(
-    "/set/password/verification/:EMailAddress",
+    "/set/password/email/verification/:EMailAddress",
     rateLimiter,
     EMailAddressControl,
     AuthControl,
@@ -465,7 +465,7 @@ app.post(
 
 //Şifre yenile 2fa onayla
 app.post(
-    "/set/password/confirm",
+    "/set/password/email/confirm",
     rateLimiter,
     EMailAddressControl,
     AuthControl,
