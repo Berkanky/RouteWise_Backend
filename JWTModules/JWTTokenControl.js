@@ -8,6 +8,8 @@ const AuthenticateJWTToken = async (req, res, next) => {
   var secret_key = process.env.SECRET_KEY;
 
   var token = req.get("Authorization") && req.get("Authorization").split(" ")[1];
+  console.log("Ön yüzden yakalanan token : ", token);
+  if( !token) return res.status(400).json({ message:' Session token required.'});
   jwt.verify(token, secret_key, async (err, user) => {
 
     var { EMailAddress } = req.params;
