@@ -1,5 +1,5 @@
 function PasswordRegex(Password){
-    var pattern = /^(?=.{10,64}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).*$/;
+    var pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     return pattern.test(Password);
 };
 
