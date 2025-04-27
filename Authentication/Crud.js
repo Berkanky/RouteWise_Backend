@@ -519,7 +519,7 @@ app.put(
 
         var Type = "Set_Password";
 
-        var { error, value } = SetPasswordUserSchema.validate({ Password: Password, PasswordConfirm: PasswordConfirm}, { abortEarly: false });
+        var { error, value } = SetPasswordUserSchema.validate({ Password: Password, PasswordConfirm: PasswordConfirm, EMailAddress: EMailAddress}, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var filter = { EMailAddress: EMailAddress };
