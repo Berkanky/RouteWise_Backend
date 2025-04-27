@@ -324,7 +324,7 @@ app.post(
         if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
 
         var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
-        if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
 
         if( LoginData.IsRemindDeviceActive) {
 
@@ -417,7 +417,7 @@ app.put(
         Auth.Surname = aes256Decrypt(Auth.Surname);
 
         var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
-        if( !Token) return res.status(500).json({ message:' Unexpected error generating verification code. Please try again.'});
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
 
         await CreateLog(req, res, Auth._id.toString(), Type);
 
@@ -463,7 +463,7 @@ app.post(
     })
 );
 
-//Şifre yenile 2fa onayla
+//Şifre yenile 2fa onayla.
 app.post(
     "/set/password/email/confirm/:EMailAddress",
     rateLimiter,
@@ -498,7 +498,10 @@ app.post(
 
         await AuthToken.findOneAndUpdate(AuthTokenFilter, update);
 
-        return res.status(200).json({ message:' Your email has been verified! Please continue with the reset password.'});
+        var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
+
+        return res.status(200).json({ message:' Your email has been verified! Please continue with the reset password.', Token});
     })
 );
 
@@ -508,7 +511,9 @@ app.put(
     rateLimiter,
     EMailAddressControl,
     AuthControl,
+    AuthenticateJWTToken,
     asyncHandler( async(req, res) => {
+        var Token = req.get("Authorization") && req.get("Authorization").split(" ")[1];
         var { EMailAddress } = req.params;
         var { Password, PasswordConfirm} = req.body;
 
@@ -532,6 +537,7 @@ app.put(
 
         await User.findOneAndUpdate(filter, update);
         await CreateLog(req, res, Auth._id.toString(), Type, {});
+        await CreateInvalidToken(req, res, Auth._id.toString());
 
         return res.status(200).json({ message:' Your password has been successfully updated, you can log in using your new password.'});
     })
