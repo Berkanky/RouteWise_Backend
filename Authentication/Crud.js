@@ -229,7 +229,7 @@ app.post(
             await AuthToken.findOneAndUpdate(AuthTokenFilter, update);
         }           
 
-        return res.status(200).json({ message:' erification code sent! Please check your email to proceed.'});
+        return res.status(200).json({ message:' verification code sent! Please check your email to proceed.'});
     })
 );
 
