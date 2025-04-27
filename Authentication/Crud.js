@@ -465,7 +465,7 @@ app.post(
 
 //Şifre yenile 2fa onayla
 app.post(
-    "/set/password/email/confirm",
+    "/set/password/email/confirm/:EMailAddress",
     rateLimiter,
     EMailAddressControl,
     AuthControl,
