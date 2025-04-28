@@ -37,7 +37,11 @@ const LoginEmailVerification = async (EMailAddress) => {
     <div style="max-width: 600px; margin: 20px auto; padding: 30px; background-color: #ffffff; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
 
         <div class="logo-placeholder" style="min-height: 40px; margin-bottom: 25px; display: flex; align-items: center;">
-            <img src='https://routewisebackend-production.up.railway.app/registerLogo.png' alt=''/>
+            <img src='https://routewisebackend-production.up.railway.app/RouteWiseOnlyLogoDark.png' 
+                 alt='RouteWise Logo' 
+                 style="height: 30px; width: auto; margin-right: 10px;" 
+            />  
+            <span style="font-size: 20px; font-weight: bold; color: #333;">RouteWise</span>
         </div>
 
         <p style="margin-bottom: 15px; font-size: 15px; color: #555; font-weight: bold;">Hi ${EMailAddress},</p>
