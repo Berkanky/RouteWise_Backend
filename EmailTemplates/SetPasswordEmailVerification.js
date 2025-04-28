@@ -13,7 +13,7 @@ const SetPasswordEmail = async (EMailAddress) => {
   var codeSpans = verificationDigits
     .map(
       (digit) =>
-        `<span style="display: inline-block; width: 35px; height: 45px; border: 1px solid #cccccc; border-radius: 4px; text-align: center; line-height: 45px; font-size: 20px; font-weight: bold; color: #333; margin-right: 8px;">${digit}</span>`
+        `<span style="display: inline-block; width: 30px; height: 45px; border: 1px solid #cccccc; border-radius: 4px; text-align: center; line-height: 45px; font-size: 20px; font-weight: bold; color: #333; margin-right: 8px;">${digit}</span>`
     )
     .join("");
 
