@@ -21,7 +21,7 @@ const RegisterEmailVerification = async (EMailAddress) => {
     to: EMailAddress,
     from: {
       email: sendGridFromEMailAddress,
-      name: "RouteWise",
+      name: "RouteWiseTeam",
     },
     subject: "RouteWise Email Verification",
     html: `

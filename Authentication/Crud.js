@@ -61,6 +61,19 @@ const CreateNewAuthToken = require("../InsertFunctions/CreateAuthToken");
 const CreateInvalidToken = require("../InsertFunctions/CreateInvalidToken");
 const CreateRefreshTokenFunction = require("../InsertFunctions/CreateRefreshToken");
 
+function EncryptDeviceDetails(req, res, DeviceDetails){
+
+    DeviceDetails.DeviceName = aes256Encrypt(DeviceDetails.DeviceName);
+    DeviceDetails.Platform = aes256Encrypt(DeviceDetails.Platform);
+    DeviceDetails.Model = aes256Encrypt(DeviceDetails.Model);
+    DeviceDetails.OperatingSystem = aes256Encrypt(DeviceDetails.OperatingSystem);
+    DeviceDetails.Manufacturer = aes256Encrypt(DeviceDetails.Manufacturer);
+    DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
+    DeviceDetails.Date = new Date();
+
+    return DeviceDetails
+};
+
 //Kayıt ol 2fa gönder.
 app.post(
     "/register/email/verification/:EMailAddress",
@@ -283,19 +296,6 @@ app.post(
 );
 
 //Giriş yap.
-function EncryptDeviceDetails(req, res, DeviceDetails){
-
-    DeviceDetails.DeviceName = aes256Encrypt(DeviceDetails.DeviceName);
-    DeviceDetails.Platform = aes256Encrypt(DeviceDetails.Platform);
-    DeviceDetails.Model = aes256Encrypt(DeviceDetails.Model);
-    DeviceDetails.OperatingSystem = aes256Encrypt(DeviceDetails.OperatingSystem);
-    DeviceDetails.Manufacturer = aes256Encrypt(DeviceDetails.Manufacturer);
-    DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
-    DeviceDetails.Date = new Date();
-
-    return DeviceDetails
-};
-
 app.post(
     '/login/:EMailAddress',
     rateLimiter,
