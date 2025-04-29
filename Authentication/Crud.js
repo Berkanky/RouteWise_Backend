@@ -330,6 +330,9 @@ app.post(
 
            var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString(), EMailAddress);
            CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
+        }else{
+
+            await RefreshToken.findOneAndDelete({ EMailAddress: Auth.EMailAddress});
         }
 
         var update = {
@@ -342,7 +345,7 @@ app.post(
         };
 
         var updatedAuth = await User.findOneAndUpdate(filter, update, {new: true}).lean();
-        await CreateLog(req, res, Auth._id.toString(), Type, EncryptDeviceDetails(req, res, LoginData.DeviceDetails));
+        await CreateLog(req, res, Auth._id.toString(), Type, EncryptDeviceDetails(req, res, LoginData.DeviceDetails ? LoginData.DeviceDetails : {}));
 
         updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
         updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
@@ -375,53 +378,10 @@ app.put(
         };
 
         await User.findOneAndUpdate(filter, update);
-        await CreateLog(req, res, Auth._id.toString(), Type);
+        await CreateLog(req, res, Auth._id.toString(), Type, {});
         await CreateInvalidToken(req, res, Auth._id.toString());
 
         return res.status(200).json({ message:' You have been logged out successfully. Come back soon!'});
-    })
-);
-
-//Hızlı giriş.
-app.put(
-    "/auto/login",
-    rateLimiter,
-    asyncHandler( async(req, res) => {
-
-        var { DeviceId, Token} = req.body;
-        var Type = "Auto_Login";
-
-        var { error, value } = AutoLoginSchema.validate({ DeviceId, Token }, { abortEarly: false });
-        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
-
-        console.log("Ön yüzden gelen şifreli Refresh Token : ", crypto.createHash('sha256').update(Token).digest('hex'));
-        console.log("Ön yüzden gelen şifresiz Refresh Token : ", Token);
-        var RefreshTokenFilter = { Token: crypto.createHash('sha256').update(Token).digest('hex') };
-
-        var refreshToken = await RefreshToken.findOne(RefreshTokenFilter).lean();
-        if( !refreshToken) return res.status(401).json({ message:' Please log in again.'});
-        if( new Date() > new Date(String(refreshToken.ExpiredDate))) return res.status(410).json({ message:' Session expired, please log in again.'});
-
-        var update = {
-            $set:{
-                Active: true
-            },
-            $unset:{
-                LastLoginDate: ''
-            }
-        };
-
-        var Auth = await User.findByIdAndUpdate(refreshToken.UserId, update, { new :true }).lean();
-
-        Auth.Name = aes256Decrypt(Auth.Name);
-        Auth.Surname = aes256Decrypt(Auth.Surname);
-
-        var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
-        if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
-
-        await CreateLog(req, res, Auth._id.toString(), Type);
-
-        return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token});
     })
 );
 
@@ -542,5 +502,49 @@ app.put(
         return res.status(200).json({ message:' Your password has been successfully updated, you can log in using your new password.'});
     })
 );
+
+//Hızlı giriş.
+app.put(
+    "/auto/login",
+    rateLimiter,
+    asyncHandler( async(req, res) => {
+
+        var { DeviceId, Token} = req.body;
+        var Type = "Auto_Login";
+
+        var { error, value } = AutoLoginSchema.validate({ DeviceId, Token }, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        console.log("Ön yüzden gelen şifreli Refresh Token : ", crypto.createHash('sha256').update(Token).digest('hex'));
+        console.log("Ön yüzden gelen şifresiz Refresh Token : ", Token);
+        var RefreshTokenFilter = { Token: crypto.createHash('sha256').update(Token).digest('hex') };
+
+        var refreshToken = await RefreshToken.findOne(RefreshTokenFilter).lean();
+        if( !refreshToken) return res.status(401).json({ message:' Please log in again.'});
+        if( new Date() > new Date(String(refreshToken.ExpiredDate))) return res.status(410).json({ message:' Session expired, please log in again.'});
+
+        var update = {
+            $set:{
+                Active: true
+            },
+            $unset:{
+                LastLoginDate: ''
+            }
+        };
+
+        var Auth = await User.findByIdAndUpdate(refreshToken.UserId, update, { new :true }).lean();
+
+        Auth.Name = aes256Decrypt(Auth.Name);
+        Auth.Surname = aes256Decrypt(Auth.Surname);
+
+        var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
+        if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
+
+        await CreateLog(req, res, Auth._id.toString(), Type);
+
+        return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token});
+    })
+);
+
 
 module.exports = app;
