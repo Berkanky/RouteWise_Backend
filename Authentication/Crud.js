@@ -63,15 +63,17 @@ const CreateRefreshTokenFunction = require("../InsertFunctions/CreateRefreshToke
 
 function EncryptDeviceDetails(req, res, DeviceDetails){
 
-    DeviceDetails.DeviceName = aes256Encrypt(DeviceDetails.DeviceName);
-    DeviceDetails.Platform = aes256Encrypt(DeviceDetails.Platform);
-    DeviceDetails.Model = aes256Encrypt(DeviceDetails.Model);
-    DeviceDetails.OperatingSystem = aes256Encrypt(DeviceDetails.OperatingSystem);
-    DeviceDetails.Manufacturer = aes256Encrypt(DeviceDetails.Manufacturer);
-    DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
-    DeviceDetails.Date = new Date();
-
-    return DeviceDetails
+    if(DeviceDetails){
+        DeviceDetails.DeviceName = aes256Encrypt(DeviceDetails.DeviceName);
+        DeviceDetails.Platform = aes256Encrypt(DeviceDetails.Platform);
+        DeviceDetails.Model = aes256Encrypt(DeviceDetails.Model);
+        DeviceDetails.OperatingSystem = aes256Encrypt(DeviceDetails.OperatingSystem);
+        DeviceDetails.Manufacturer = aes256Encrypt(DeviceDetails.Manufacturer);
+        DeviceDetails.IPAddress = aes256Encrypt(getDeviceDetails(req, res).IPAddress);
+        DeviceDetails.Date = new Date();
+        return DeviceDetails
+    }
+    return {};
 };
 
 //Kayıt ol 2fa gönder.
