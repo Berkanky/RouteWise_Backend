@@ -48,6 +48,9 @@ app.use(express.urlencoded({ limit: "350mb", extended: true }));
 
 app.use((err, req, res, next) => {
   console.error(err);
+  var origin = req.headers.origin; // Gelen isteğin Origin başlığını oku
+  console.log('>>> Gelen İstek Origin:', origin || 'Origin başlığı yok'); // Konsola yazdır
+  
   return res.status(err.status || 500).json({ message: err.message });
 });
 
