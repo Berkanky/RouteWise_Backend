@@ -347,7 +347,7 @@ app.post(
         };
 
         var updatedAuth = await User.findOneAndUpdate(filter, update, {new: true}).lean();
-        await CreateLog(req, res, Auth._id.toString(), Type, EncryptDeviceDetails(req, res, LoginData.DeviceDetails ? LoginData.DeviceDetails : {}));
+        await CreateLog(req, res, Auth._id.toString(), Type, LoginData.DeviceDetails ? EncryptDeviceDetails(req, res, LoginData.DeviceDetails) : {});
 
         updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
         updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
