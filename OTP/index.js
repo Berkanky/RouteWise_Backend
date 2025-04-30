@@ -21,7 +21,7 @@ const OTPSendSchema = require("../JoiSchemas/OTPSendSchema");
 const OTPVerifySchema = require("../JoiSchemas/OTPVerifySchema");
 
 async function createVerification(PhoneNumber) {
-    
+    console.log("createdServiceSid : ", createdServiceSid);
     const verification = await client.verify.v2
       .services(createdServiceSid)
       .verifications.create({
