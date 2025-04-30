@@ -6,6 +6,8 @@ const AuthControl = async (req, res, next) => {
   var filter = { EMailAddress: EMailAddress};
   var Auth = await User.findOne(filter);
   if ( !Auth) return res.status(404).json({ message: " No account found with that email address." });
+
+  req.Auth = Auth;
   next();
 };
 

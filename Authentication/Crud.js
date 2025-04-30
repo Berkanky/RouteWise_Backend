@@ -8,6 +8,10 @@ const crypto = require('crypto');
 //Firebase admin
 const admin = require('../FirebaseAdmin'); // orijinal path’e göre düzelt
 
+//node-cache
+const NodeCache = require( "node-cache" );
+const ServerCache = new NodeCache();
+
 //Fonksiyonlar.
 const getDeviceDetails = require("../MyFunctions/getDeviceDetails");
 const createVerifyCode = require("../MyFunctions/GenerateVerifyCode");
@@ -87,8 +91,9 @@ app.post(
 
         var VerificationId = await RegisterEmailVerification(EMailAddress);
         if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the verification code right now. Please try again in a few minutes.'});
-
-        var Auth = await User.findOne({EMailAddress: EMailAddress});
+        
+        var filter = {EMailAddress: EMailAddress};
+        var Auth = await User.findOne(filter);
 
         if( !Auth){
             var newUserObj = {
@@ -143,8 +148,8 @@ app.post(
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var Type = 'Register_Email_Verification';
-        var filter = { EMailAddress: EMailAddress};
-        var Auth = await User.findOne(filter);
+
+        var Auth = req.Auth;
         if( Auth && !Auth.IsTemporary) return res.status(409).json({ message:' This email is already verified. Please log in instead.'});
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
@@ -163,6 +168,7 @@ app.post(
         };
 
         await AuthToken.findOneAndUpdate(AuthTokenFilter, AuthTokenUpdate);
+
         return res.status(200).json({ message:' Your email has been verified! Please continue with the registration.'});
     })
 );
@@ -176,15 +182,16 @@ app.post(
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
         var { RegisterData } = req.body;
+
         var Type = 'Register';
 
         var { error, value } = RegisterUserSchema.validate(RegisterData, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        var filter = { EMailAddress: EMailAddress};
-        var Auth = await User.findOne(filter);
+        var Auth = req.Auth;
         if(!Auth.IsTemporary) return res.status(409).json({message:' An account with this email is already active. Please log in.'});
         
+        var filter = { EMailAddress: EMailAddress};
         var update = {
             Name: aes256Encrypt(RegisterData.Name),
             Surname: aes256Encrypt(RegisterData.Surname),
@@ -209,22 +216,19 @@ app.post(
     asyncHandler( async(req, res) => {
         var { EMailAddress } = req.params;
         var { Password } = req.body;
+
         var Type = 'Login_Email_Verification';
 
         if( !Password) return res.status(400).json({ message:' Please provide your password to continue.'});
 
-        var filter = { EMailAddress: EMailAddress};
-        var Auth = await User.findOne(filter);
+        var Auth = req.Auth;
 
         if( Auth.IsTemporary) return res.status(409).json({ message:' Your registration isn’t complete yet. Please finish signing up first.'});
-        
-        var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
 
-        if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
+        if( !await SCRYPTCheck(Password, Auth.Password)) return res.status(401).json({ message:' Incorrect password. Please try again.'});
 
         var VerificationId = await LoginEmailVerification(EMailAddress);
         if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the code right now. Please try again in a few minutes.'});
-
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
         var authToken = await AuthToken.findOne(AuthTokenFilter);
@@ -257,13 +261,13 @@ app.post(
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
         var { VerificationId } = req.body;
+
         var Type = 'Login_Email_Verification';
 
         var { error, value } = LoginTwoFASchema.validate({ VerificationId: VerificationId }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        var filter = { EMailAddress: EMailAddress};
-        var Auth = await User.findOne(filter);
+        var Auth = req.Auth;
 
         if( Auth.IsTemporary) return res.status(409).json({ message:' Registration isn’t complete. Please finish signing up first.'});
 
@@ -284,6 +288,7 @@ app.post(
 
         await AuthToken.findOneAndUpdate(AuthTokenFilter, AuthTokenUpdate);
 
+        var filter = { EMailAddress: EMailAddress};
         var update = {
             $set:{
                 TwoFAStatus: true,
@@ -307,16 +312,15 @@ app.post(
         var { EMailAddress } = req.params;
         var { LoginData } = req.body;
 
-        var CreatedRefreshToken;
+        var Type = 'Login';
 
         var { error, value } = LoginUserSchema.validate(LoginData, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        var Type = 'Login';
+        
         var Password = LoginData.Password;
 
-        var filter = { EMailAddress: EMailAddress};
-        var Auth = await User.findOne(filter);
+        var Auth = req.Auth;
 
         if( !Auth.TwoFAStatus) return res.status(403).json({ message:' 2FA verification is incomplete. Please restart login.'});
         if( Auth.IsTemporary) return res.status(409).json({ message:' Registration is not complete. Please finish signing up.'});
@@ -328,6 +332,7 @@ app.post(
         var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
 
+        var CreatedRefreshToken;
         if( LoginData.IsRemindDeviceActive) {
 
            var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString(), EMailAddress);
@@ -337,6 +342,7 @@ app.post(
             await RefreshToken.findOneAndDelete({ EMailAddress: Auth.EMailAddress});
         }
 
+        var filter = { EMailAddress: EMailAddress};
         var update = {
             $set:{
                 Active: true
@@ -365,10 +371,12 @@ app.put(
     AuthenticateJWTToken,
     asyncHandler( async(req, res) => {
         var { EMailAddress } = req.params;
-        var Type = 'Logout';
-        var filter = { EMailAddress: EMailAddress};
-        var Auth = await User.findOne(filter);
 
+        var Type = 'Logout';
+
+        var Auth = req.Auth;
+
+        var filter = { EMailAddress: EMailAddress};
         var update = {
             $set:{
                 Active: false,
@@ -394,12 +402,9 @@ app.post(
     EMailAddressControl,
     AuthControl,
     asyncHandler( async(req, res) => {
-        var { EMailAddress } = req.params;
-
         var Type = 'Set_Password';
 
-        var filter = { EMailAddress: EMailAddress };
-        var Auth = await User.findOne(filter);
+        var Auth = req.Auth;
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type };
 
@@ -432,7 +437,6 @@ app.post(
     EMailAddressControl,
     AuthControl,
     asyncHandler( async(req, res) => {
-        var { EMailAddress } = req.params;
         var { VerificationId } = req.body;
 
         var Type = "Set_Password";
@@ -440,8 +444,7 @@ app.post(
         var { error, value } = SetPasswordTwoFASchema.validate({ VerificationId: VerificationId }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        var filter = { EMailAddress: EMailAddress};
-        var Auth = await User.findOne(filter);
+        var Auth = req.Auth;
 
         var AuthTokenFilter = { UserId: Auth._id.toString(), TokenType: Type};
         var authToken = await AuthToken.findOne(AuthTokenFilter);
@@ -475,7 +478,6 @@ app.put(
     AuthControl,
     AuthenticateJWTToken,
     asyncHandler( async(req, res) => {
-        var Token = req.get("Authorization") && req.get("Authorization").split(" ")[1];
         var { EMailAddress } = req.params;
         var { Password, PasswordConfirm} = req.body;
 
@@ -484,12 +486,11 @@ app.put(
         var { error, value } = SetPasswordUserSchema.validate({ Password: Password, PasswordConfirm: PasswordConfirm, EMailAddress: EMailAddress}, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
+        var Auth = req.Auth;
+
+        if( await SCRYPTCheck(Password, Auth.Password )) return res.status(400).json({ message:' Please enter a different password than your old password.'});
+
         var filter = { EMailAddress: EMailAddress };
-        var Auth = await User.findOne(filter);
-
-        var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
-        if( PasswordCheck) return res.status(400).json({ message:' Please enter a different password than your old password.'});
-
         var update = {
             $set: {
                 Password: await SCRYPTEncrypt(Password),
@@ -510,15 +511,12 @@ app.put(
     "/auto/login",
     rateLimiter,
     asyncHandler( async(req, res) => {
-
         var { DeviceId, Token} = req.body;
         var Type = "Auto_Login";
 
         var { error, value } = AutoLoginSchema.validate({ DeviceId, Token }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        console.log("Ön yüzden gelen şifreli Refresh Token : ", crypto.createHash('sha256').update(Token).digest('hex'));
-        console.log("Ön yüzden gelen şifresiz Refresh Token : ", Token);
         var RefreshTokenFilter = { Token: crypto.createHash('sha256').update(Token).digest('hex') };
 
         var refreshToken = await RefreshToken.findOne(RefreshTokenFilter).lean();
@@ -542,7 +540,7 @@ app.put(
         var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
 
-        await CreateLog(req, res, Auth._id.toString(), Type);
+        await CreateLog(req, res, Auth._id.toString(), Type, {});
 
         return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token});
     })

@@ -56,7 +56,8 @@ app.use((err, req, res, next) => {
 
 const AuthCrud = require("./Authentication/Crud");
 const OpenAI = require("./openai/openAIWhisper");
-app.use("/", AuthCrud, OpenAI);
+const OTP = require("./OTP/index");
+app.use("/", AuthCrud, OpenAI, OTP);
 
 app.use((err, req, res, next) => {
   console.error(err);
