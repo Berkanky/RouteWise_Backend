@@ -35,7 +35,7 @@ async function createVerification(PhoneNumber) {
 
 async function createVerificationCheck(PhoneNumber, VerificationCode) {
     const verificationCheck = await client.verify.v2
-      .services(serviceSid)
+      .services(createdServiceSid)
       .verificationChecks.create({
         code: VerificationCode,
         to: PhoneNumber,
