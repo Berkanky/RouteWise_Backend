@@ -118,7 +118,9 @@ app.put(
 
         var Auth = req.Auth;
 
-        var verifiedVerification = await createVerificationCheck(PhoneNumber, VerificationCode);
+        var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
+
+        var verifiedVerification = await createVerificationCheck(CustomerPhoneNumber, VerificationCode);
         console.log("/verify/otp/sms : ", JSON.stringify(verifiedVerification));
 
         if(verifiedVerification.status != 'approved') return res.status(400).json({ message:' Verification failed, please try again.'});
