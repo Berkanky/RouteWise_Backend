@@ -58,6 +58,7 @@ const LoginUserSchema = require("../JoiSchemas/LoginUserSchema");
 const AutoLoginSchema = require("../JoiSchemas/AutoLoginSchema");
 const SetPasswordTwoFASchema = require("../JoiSchemas/SetPasswordTwoFASchema");
 const SetPasswordUserSchema = require("../JoiSchemas/SetPasswordUserSchema");
+const LoginPasswordCheckSchema = require("../JoiSchemas/LoginPasswordCheckSchema");
 
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
@@ -313,6 +314,30 @@ app.post(
     })
 );
 
+//Şifre doğrula.
+app.get(
+    "/password/check/:EMailAddress",
+    rateLimiter,
+    EMailAddressControl,
+    AuthControl,
+    asyncHandler( async(req, res) =>{
+        var { LoginData } = req.body;
+
+        var { error, value } = LoginPasswordCheckSchema.validate(LoginData, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        var Auth = req.Auth;
+
+        var StoredPassword = Auth.Password;
+        var Password = LoginData.Password;
+
+        if( !await SCRYPTCheck(Password, StoredPassword)) return res.status(401).json({ message:' Incorrect password or email. Please try again.'})
+        if( Auth.IsTemporary) return res.status(409).json({ message:' Registration is not complete. Please finish signing up.'});
+
+        return res.status(200).json({ message:' Please wait, redirecting.'})
+    })
+);
+
 //Giriş yap.
 app.post(
     '/login/:EMailAddress',
@@ -338,7 +363,7 @@ app.post(
         
         var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
         
-        if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
+        if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password or email. Please try again.'});
 
         var Token = await CreateJWTToken(req, res, EMailAddress, Auth._id.toString());
         if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
