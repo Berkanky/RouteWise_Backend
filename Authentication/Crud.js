@@ -205,6 +205,8 @@ app.post(
             Name: aes256Encrypt(RegisterData.Name),
             Surname: aes256Encrypt(RegisterData.Surname),
             Password: await SCRYPTEncrypt(RegisterData.Password),
+            PhoneNumber: aes256Encrypt(RegisterData.PhoneNumber),
+            DialCode: aes256Encrypt(RegisterData.DialCode),
             CreatedDate: new Date(),
             IsTemporary: false,
         };
@@ -366,6 +368,8 @@ app.post(
 
         updatedAuth.Name = aes256Decrypt(updatedAuth.Name);
         updatedAuth.Surname = aes256Decrypt(updatedAuth.Surname);
+        updatedAuth.DialCode = aes256Decrypt(updatedAuth.DialCode);
+        updatedAuth.PhoneNumber = aes256Decrypt(updatedAuth.PhoneNumber);
 
         return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken});
     })

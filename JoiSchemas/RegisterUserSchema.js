@@ -30,8 +30,18 @@ const RegisterUserSchema = Joi.object({
 
   UserName: Joi.string().alphanum().min(3).max(30).optional(),
   VerifySended: Joi.boolean().optional(),
-  Name: Joi.string().max(50).required(),
-  Surname: Joi.string().max(50).required(),
+  Name: Joi.string().max(50).required().messages({
+    "any.required": "Name is required.",
+  }),
+  Surname: Joi.string().max(50).required().messages({
+    "any.required": "Surname is required.",
+  }),
+  PhoneNumber: Joi.string().max(50).required().messages({
+    "any.required": "Phone number is required.",
+  }),
+  DialCode: Joi.string().max(50).required().messages({
+    "any.required": "Dial code is required.",
+  }),
 });
 
 module.exports = RegisterUserSchema;

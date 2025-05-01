@@ -119,7 +119,7 @@ app.put(
         var Auth = req.Auth;
 
         var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
-        console.log("CustomerPhoneNumber : ", CustomerPhoneNumber);
+
         var verifiedVerification = await createVerificationCheck(CustomerPhoneNumber, VerificationCode);
         console.log("/verify/otp/sms : ", JSON.stringify(verifiedVerification));
 
