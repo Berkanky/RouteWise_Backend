@@ -31,7 +31,9 @@ const LoginUserSchema = Joi.object({
   }),
   IsRemindDeviceActive: Joi.boolean().optional().messages({
     "any.required": "IsRemindDeviceActive is required.",
-  })
+  }),
+  DialCode: Joi.boolean().optional(),
+  PhoneNumber: Joi.boolean().optional()
 });
 
 module.exports = LoginUserSchema;
