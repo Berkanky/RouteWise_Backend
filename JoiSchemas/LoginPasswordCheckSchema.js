@@ -28,12 +28,8 @@ const LoginPasswordCheckSchema = Joi.object({
   IsRemindDeviceActive: Joi.boolean().optional().messages({
     "any.required": "IsRemindDeviceActive is required.",
   }),
-  PhoneNumber: Joi.required().messages({
-    "any.required": "Phone number is required. ",
-  }),
-  DialCode: Joi.required().messages({
-    "any.required": "Dial code is required. ",
-  }),
+  PhoneNumber: Joi.optional(),
+  DialCode: Joi.optional()
 });
 
 module.exports = LoginPasswordCheckSchema;
