@@ -37,11 +37,11 @@ const RegisterUserSchema = Joi.object({
   Surname: Joi.string().max(50).required().messages({
     "any.required": "Surname is required.",
   }),
-  PhoneNumber: Joi.string().max(50).required().messages({
-    "any.required": "Phone number is required.",
+  PhoneNumber: Joi.required().messages({
+    "any.required": "Phone number is required. ",
   }),
-  DialCode: Joi.string().max(50).required().messages({
-    "any.required": "Dial code is required.",
+  DialCode: Joi.required().messages({
+    "any.required": "Dial code is required. ",
   }),
 });
 

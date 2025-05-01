@@ -4,13 +4,13 @@ const OTPVerifySchema = Joi.object({
   EMailAddress: Joi.string().required().messages({
     "any.required": "Email address is required. ",
   }),
-  PhoneNumber: Joi.string().required().messages({
+  PhoneNumber: Joi.required().messages({
     "any.required": "Phone number is required. ",
   }),
   VerificationCode: Joi.string().required().messages({
     "any.required": "Verification code is required. ",
   }),
-  DialCode: Joi.string().required().messages({
+  DialCode: Joi.required().messages({
     "any.required": "Dial code is required. ",
   }),
   Type: Joi.string().required().messages({
