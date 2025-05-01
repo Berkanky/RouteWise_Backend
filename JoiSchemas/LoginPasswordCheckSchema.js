@@ -18,7 +18,16 @@ const LoginPasswordCheckSchema = Joi.object({
       "string.pattern.base":
         "The password must contain at least one uppercase letter, one lowercase letter and one number.",
       "any.required": "The password is required.",
-    })
+    }),
+  Verified: Joi.boolean().optional().messages({
+    "any.required": "Verified is required.",
+  }),
+  VerifySended: Joi.boolean().optional().messages({
+    "any.required": "VerifySended is required.",
+  }),
+  IsRemindDeviceActive: Joi.boolean().optional().messages({
+    "any.required": "IsRemindDeviceActive is required.",
+  }),
 });
 
 module.exports = LoginPasswordCheckSchema;
