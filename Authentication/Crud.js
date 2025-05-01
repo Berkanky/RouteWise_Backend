@@ -321,6 +321,7 @@ app.put(
     EMailAddressControl,
     AuthControl,
     asyncHandler( async(req, res) =>{
+        var { EMailAddress } = req.params;
         var { LoginData } = req.body;
 
         var { error, value } = LoginPasswordCheckSchema.validate(LoginData, { abortEarly: false });
@@ -336,7 +337,6 @@ app.put(
 
         var DialCode = aes256Decrypt(Auth.DialCode);
         var PhoneNumber = aes256Decrypt(Auth.PhoneNumber);
-        var EMailAddress = Auth.EMailAddress;
 
         return res.status(200).json({ message:' Please wait, redirecting.', DialCode, PhoneNumber, EMailAddress});
     })
