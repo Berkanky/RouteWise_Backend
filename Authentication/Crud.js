@@ -89,9 +89,6 @@ app.post(
         var { EMailAddress } = req.params;
         var Type = 'Register_Email_Verification';
 
-        var VerificationId = await RegisterEmailVerification(EMailAddress);
-        if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the verification code right now. Please try again in a few minutes.'});
-        
         var filter = {EMailAddress: EMailAddress};
         var Auth = await User.findOne(filter);
 
@@ -104,6 +101,10 @@ app.post(
             var newUser = new User(newUserObj);
             var createdUser = await newUser.save();
 
+            
+            var VerificationId = await RegisterEmailVerification(EMailAddress);
+            if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the verification code right now. Please try again in a few minutes.'});
+            
             var createdNewAuthToken = await CreateNewAuthToken(createdUser, VerificationId, Type);
             if( !createdNewAuthToken) return res.status(500).json({ message:' Something went wrong on our end. Please refresh the page or try again shortly.'});
         }
@@ -116,9 +117,17 @@ app.post(
             var authToken = await AuthToken.findOne(AuthTokenFilter);
             if( !authToken){
 
+                var VerificationId = await RegisterEmailVerification(EMailAddress);
+                if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the verification code right now. Please try again in a few minutes.'});
+            
+
                 var createdNewAuthToken = await CreateNewAuthToken(Auth, VerificationId, Type);
                 if( !createdNewAuthToken) return res.status(500).json({ message:' We couldn’t refresh your verification code. Please request a new code.'});
             }else{
+
+                var VerificationId = await RegisterEmailVerification(EMailAddress);
+                if( !VerificationId) return res.status(502).json({ message:' We couldn’t send the verification code right now. Please try again in a few minutes.'});
+            
 
                 var update = {
                     $set:{
