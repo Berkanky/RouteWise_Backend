@@ -10,6 +10,10 @@ var authToken = process.env.TWILIO_AUTH_TOKEN;
 var createdServiceSid = process.env.TWILIO_CREATED_SERVICE_SID;
 var client = twilio(accountSid, authToken);
 
+//Şifreleme metotları.
+var SCRYPTEncrypt = require("../EncryptModules/SCRYPTEncrypt");
+var SCRYPTCheck = require("../EncryptModules/SCRYPTCheck");
+
 //Global error
 const asyncHandler = require("../Handler/Handler");
 
@@ -77,10 +81,18 @@ app.put(
     EMailAddressControl,
     rateLimiter,
     asyncHandler(async(req, res) => {
-        var { EMailAddress, PhoneNumber, DialCode } = req.body;
+        var { EMailAddress, PhoneNumber, DialCode, Type, Password } = req.body;
 
-        var { error, value } = OTPSendSchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, DialCode: DialCode }, { abortEarly: false });
+        var { error, value } = OTPSendSchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, DialCode: DialCode, Type: Type, Password: Password }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        if( Type === 'Login'){
+            var filter = { EMailAddress: EMailAddress};
+            var Auth = await User.findOne(filter);
+
+            var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
+            if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
+        }
 
         var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
 

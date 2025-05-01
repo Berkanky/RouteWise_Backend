@@ -9,7 +9,11 @@ const OTPSendSchema = Joi.object({
   }),
   DialCode: Joi.string().required().messages({
     "any.required": "Dial code is required. ",
-  })
+  }),
+  Type: Joi.string().required().messages({
+    "any.required": "Type is required. ",
+  }),
+  Password: Joi.string().optional()
 });
 
 module.exports = OTPSendSchema;
