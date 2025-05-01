@@ -68,6 +68,9 @@ async function createVerificationCheck(PhoneNumber, VerificationCode) {
     return verificationCheck
 };
 
+
+//Refresh Token yazılacak apilerin güvenliği için.
+
 app.get(
     "/country/codes",
     asyncHandler(async(req, res) => {
@@ -77,9 +80,9 @@ app.get(
 );
 
 app.put(
-    "/send/otp/sms",
-    EMailAddressControl,
+    "/send/otp/sms/:EMailAddress",
     rateLimiter,
+    EMailAddressControl,
     asyncHandler(async(req, res) => {
         var { EMailAddress, PhoneNumber, DialCode, Type, Password } = req.body;
 
@@ -104,7 +107,7 @@ app.put(
 );
 
 app.put(
-    "/verify/otp/sms",
+    "/verify/otp/sms/:EMailAddress",
     rateLimiter,
     AuthControl,
     asyncHandler(async(req, res) => {
