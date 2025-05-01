@@ -315,7 +315,7 @@ app.post(
 );
 
 //Şifre doğrula.
-app.get(
+app.put(
     "/password/check/:EMailAddress",
     rateLimiter,
     EMailAddressControl,
