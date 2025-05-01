@@ -72,7 +72,7 @@ app.get(
     })
 );
 
-app.get(
+app.put(
     "/send/otp/sms",
     EMailAddressControl,
     rateLimiter,
@@ -90,7 +90,7 @@ app.get(
     })
 );
 
-app.get(
+app.put(
     "/verify/otp/sms",
     rateLimiter,
     AuthControl,
