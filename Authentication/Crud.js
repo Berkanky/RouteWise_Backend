@@ -206,8 +206,8 @@ app.post(
             Name: aes256Encrypt(RegisterData.Name),
             Surname: aes256Encrypt(RegisterData.Surname),
             Password: await SCRYPTEncrypt(RegisterData.Password),
-            PhoneNumber: aes256Encrypt(RegisterData.PhoneNumber),
-            DialCode: aes256Encrypt(RegisterData.DialCode),
+            PhoneNumber: aes256Encrypt(String(RegisterData.PhoneNumber)),
+            DialCode: aes256Encrypt(String(RegisterData.DialCode)),
             CreatedDate: new Date(),
             IsTemporary: false,
         };
