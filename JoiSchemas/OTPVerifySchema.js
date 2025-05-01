@@ -10,7 +10,12 @@ const OTPVerifySchema = Joi.object({
   VerificationCode: Joi.string().required().messages({
     "any.required": "Verification code is required. ",
   }),
-  Type: Joi.string().optional(),
+  DialCode: Joi.string().required().messages({
+    "any.required": "Dial code is required. ",
+  }),
+  Type: Joi.string().required().messages({
+    "any.required": "Type is required. ",
+  }),
 });
 
 module.exports = OTPVerifySchema;

@@ -82,7 +82,9 @@ app.put(
         var { error, value } = OTPSendSchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, DialCode: DialCode }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        var createdVerification = await createVerification(PhoneNumber);
+        var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
+
+        var createdVerification = await createVerification(CustomerPhoneNumber);
 
         console.log("/send/otp/sms : ", JSON.stringify(createdVerification));
 
@@ -95,9 +97,9 @@ app.put(
     rateLimiter,
     AuthControl,
     asyncHandler(async(req, res) => {
-        var { EMailAddress, PhoneNumber, VerificationCode, Type } = req.body;
+        var { EMailAddress, PhoneNumber, VerificationCode, DialCode, Type } = req.body;
 
-        var { error, value } = OTPVerifySchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, VerificationCode: VerificationCode, Type: Type}, { abortEarly: false });
+        var { error, value } = OTPVerifySchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, VerificationCode: VerificationCode, DialCode: DialCode, Type: Type}, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var Auth = req.Auth;
@@ -114,9 +116,18 @@ app.put(
                 }
             };
             await User.findByIdAndUpdate(Auth._id.toString(), update);
-        }
 
-        return res.status(200).json({ message:' OTP verification completed successfully, you can login.'});
+            return res.status(200).json({ message:' OTP verification completed successfully, please proceed to complete login.'});
+        }
+        if( Type === 'setPassword'){
+            var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
+            if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
+            
+            return res.status(200).json({ message:' OTP verification completed successfully,  please continue with the reset password.', Token});
+        }
+        if( Type === 'Register'){
+            return res.status(200).json({ message:' OTP verification completed successfully, please continue with the registration.'});
+        }
     })
 );
 
