@@ -6,6 +6,9 @@ const OTPSendSchema = Joi.object({
   }),
   PhoneNumber: Joi.string().required().messages({
     "any.required": "Phone number is required. ",
+  }),
+  DialCode: Joi.string().required().messages({
+    "any.required": "Dial code is required. ",
   })
 });
 

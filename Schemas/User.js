@@ -18,6 +18,9 @@ const UserSchema = new mongoose.Schema({
     PhoneNumber:{
         type:String
     },
+    DialCode:{
+        type:String
+    },
     Bio:{
         type:String
     },

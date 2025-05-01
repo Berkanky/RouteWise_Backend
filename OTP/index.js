@@ -77,9 +77,9 @@ app.get(
     EMailAddressControl,
     rateLimiter,
     asyncHandler(async(req, res) => {
-        var { EMailAddress, PhoneNumber } = req.body;
+        var { EMailAddress, PhoneNumber, DialCode } = req.body;
 
-        var { error, value } = OTPSendSchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress }, { abortEarly: false });
+        var { error, value } = OTPSendSchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, DialCode: DialCode }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var createdVerification = await createVerification(PhoneNumber);
