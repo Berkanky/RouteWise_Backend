@@ -92,7 +92,7 @@ app.put(
         if( Type === 'Login'){
             var filter = { EMailAddress: EMailAddress};
             var Auth = await User.findOne(filter);
-
+            console.log("Ön yüzden gelen Password : ", Password);
             var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
             if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
         }
