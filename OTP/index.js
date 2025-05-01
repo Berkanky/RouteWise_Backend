@@ -85,7 +85,6 @@ app.put(
         var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
 
         var createdVerification = await createVerification(CustomerPhoneNumber);
-
         console.log("/send/otp/sms : ", JSON.stringify(createdVerification));
 
         return res.status(201).json({ message:' OTP has been successfully sent, please check your phone. '});
