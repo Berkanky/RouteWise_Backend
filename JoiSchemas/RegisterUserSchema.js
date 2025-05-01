@@ -30,6 +30,7 @@ const RegisterUserSchema = Joi.object({
 
   UserName: Joi.string().alphanum().min(3).max(30).optional(),
   VerifySended: Joi.boolean().optional(),
+  Verified: Joi.boolean().optional(),
   Name: Joi.string().max(50).required().messages({
     "any.required": "Name is required.",
   }),
