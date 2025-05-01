@@ -334,7 +334,11 @@ app.put(
         if( !await SCRYPTCheck(Password, StoredPassword)) return res.status(401).json({ message:' Incorrect password or email. Please try again.'})
         if( Auth.IsTemporary) return res.status(409).json({ message:' Registration is not complete. Please finish signing up.'});
 
-        return res.status(200).json({ message:' Please wait, redirecting.'})
+        var DialCode = aes256Decrypt(Auth.DialCode);
+        var PhoneNumber = aes256Decrypt(Auth.PhoneNumber);
+        var EMailAddress = Auth.EMailAddress;
+
+        return res.status(200).json({ message:' Please wait, redirecting.', DialCode, PhoneNumber, EMailAddress});
     })
 );
 
