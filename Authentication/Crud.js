@@ -59,7 +59,6 @@ const AutoLoginSchema = require("../JoiSchemas/AutoLoginSchema");
 const SetPasswordTwoFASchema = require("../JoiSchemas/SetPasswordTwoFASchema");
 const SetPasswordUserSchema = require("../JoiSchemas/SetPasswordUserSchema");
 const LoginPasswordCheckSchema = require("../JoiSchemas/LoginPasswordCheckSchema");
-const SetPasswordEmailVerifySchema = require("../JoiSchemas/SetPasswordEmailVerifySchema");
 
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
