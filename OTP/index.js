@@ -42,6 +42,10 @@ const DialCodePhoneNumberSchema = require("../JoiSchemas/DialCodePhoneNumberSche
 var aes256Encrypt = require("../EncryptModules/AES256Encrypt");
 var aes256Decrypt = require("../EncryptModules/AES256Decrypt");
 
+//JWT
+const CreateJWTToken = require("../JWTModules/CreateJWTToken");
+
+
 async function readCountryCodesJSON() {
     var fileContent = await fs.readFile(filePath, 'utf8');
     var Countries = JSON.parse(fileContent);
