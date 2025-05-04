@@ -36,6 +36,11 @@ const InvalidTokenControlFunction = require("../Middleware/InvalidTokenControl")
 //JOI Doğrulama şemaları
 const OTPSendSchema = require("../JoiSchemas/OTPSendSchema");
 const OTPVerifySchema = require("../JoiSchemas/OTPVerifySchema");
+const DialCodePhoneNumberSchema = require("../JoiSchemas/DialCodePhoneNumberSchema");
+
+//Şifreleme metotları.
+var aes256Encrypt = require("../EncryptModules/AES256Encrypt");
+var aes256Decrypt = require("../EncryptModules/AES256Decrypt");
 
 async function readCountryCodesJSON() {
     var fileContent = await fs.readFile(filePath, 'utf8');
@@ -71,8 +76,30 @@ async function createVerificationCheck(PhoneNumber, VerificationCode) {
 
 //Refresh Token yazılacak apilerin güvenliği için.
 
+async function VerifyPhoneNumberWithAccountFinded(req, res, next){
+    var { EMailAddress } = req.params;
+    var { DialCode, PhoneNumber } = req.body;
+
+    var { error, value } = DialCodePhoneNumberSchema.validate({DialCode, PhoneNumber}, { abortEarly: false });
+    if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+    var filter = { EMailAddress: EMailAddress };
+    var Auth = await User.findOne(filter);
+
+    if( !Auth) return res.status(404).json({ message: " No account found with that email address." });
+    if( Auth.IsTemporary) return res.status(409).json({ message:' Registration is not complete. Please finish signing up.'});
+
+    var AuthPhoneNumber = Auth.DialCode + Auth.PhoneNumber;
+
+    var RequestedPhoneNumber = (DialCode).toString() + (PhoneNumber).toString();
+    if( RequestedPhoneNumber !== AuthPhoneNumber) return res.status(401).json({ message:' The email address matched to the system and the phone number to be verified do not match, please try again or verify by email.'});
+
+    next();
+};  
+
 app.get(
     "/country/codes",
+    rateLimiter,
     asyncHandler(async(req, res) => {
         var Countries = await readCountryCodesJSON();
         return res.status(200).json({Countries: Countries});
@@ -84,10 +111,13 @@ app.put(
     rateLimiter,
     EMailAddressControl,
     asyncHandler(async(req, res) => {
-        var { EMailAddress, PhoneNumber, DialCode, Type, Password } = req.body;
+        var { EMailAddress } = req.params;
+        var { PhoneNumber, DialCode, Type, Password } = req.body;
 
         var { error, value } = OTPSendSchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, DialCode: DialCode, Type: Type, Password: Password }, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
 
         if( Type === 'Login'){
             var filter = { EMailAddress: EMailAddress};
@@ -97,11 +127,20 @@ app.put(
             if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
         }
 
-        var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
+        if( Type === 'setPassword') {
 
-        var createdVerification = await createVerification(CustomerPhoneNumber);
-        console.log("/send/otp/sms : ", JSON.stringify(createdVerification));
+            var filter = { EMailAddress: EMailAddress };
+            var Auth = await User.findOne(filter);
 
+            if ( !Auth) return res.status(404).json({ message: " No account found with that email address." });
+
+            var AuthPhoneNumber = aes256Decrypt(Auth.DialCode) + aes256Decrypt(Auth.PhoneNumber);
+            var IsAuthPhoneNumberVerified = AuthPhoneNumber == CustomerPhoneNumber ? true : false;
+
+            if( !IsAuthPhoneNumberVerified ) return res.status(400).json({ message:' The phone number of this user and the phone number you entered did not match.'});
+        }
+
+        await createVerification(CustomerPhoneNumber);
         return res.status(201).json({ message:' OTP has been successfully sent, please check your phone. '});
     })
 );
@@ -136,6 +175,7 @@ app.put(
             return res.status(200).json({ message:' OTP verification completed successfully, please proceed to complete login.'});
         }
         if( Type === 'setPassword'){
+            
             var Token = await CreateJWTToken(req, res, Auth.EMailAddress, Auth._id.toString());
             if( !Token) return res.status(500).json({ message:' Unexpected error generating session token. Please try again.'});
             

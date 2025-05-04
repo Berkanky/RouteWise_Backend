@@ -1,7 +1,8 @@
 const Token = require("../Schemas/InvalidToken");
 
-async function CreateInvalidToken(req, res, _id){
+async function CreateInvalidToken(req, res, _id, tokenValue){
     var token = req.get("Authorization") && req.get("Authorization").split(" ")[1];
+    if( !token && tokenValue) token = tokenValue;
     var newTokenObj = {
         UserId: _id,
         JWTToken: token,

@@ -44,6 +44,7 @@ const InvalidTokenControlFunction = require("../Middleware/InvalidTokenControl")
 //JWT.
 const AuthenticateJWTToken = require("../JWTModules/JWTTokenControl");
 const CreateJWTToken = require("../JWTModules/CreateJWTToken");
+const CreateRefreshToken = require("../JWTModules/CreateRefreshToken");
 
 //Şemalar
 const User = require("../Schemas/User");
@@ -358,7 +359,6 @@ app.post(
         var { error, value } = LoginUserSchema.validate(LoginData, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
-        
         var Password = LoginData.Password;
 
         var Auth = req.Auth;
@@ -379,8 +379,13 @@ app.post(
            var CreatedRefreshTokenObj = await CreateRefreshTokenFunction(req, res, Auth._id.toString(), EMailAddress);
            CreatedRefreshToken = CreatedRefreshTokenObj.RefreshTokenDecrypted;
         }else{
+            
+            var CreatedRefreshToken = await RefreshToken.findOne({ UserId: Auth.EMailAddress});
+            if( CreatedRefreshToken) {
 
-            await RefreshToken.findOneAndDelete({ EMailAddress: Auth.EMailAddress});
+                await CreateInvalidToken(req, res, Auth._id.toString(), CreatedRefreshToken.Token);
+                await RefreshToken.findOneAndDelete({ EMailAddress: Auth.EMailAddress});
+            }
         }
 
         var filter = { EMailAddress: EMailAddress};
