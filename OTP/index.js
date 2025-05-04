@@ -5,7 +5,7 @@ const app = express.Router();
 
 const twilio = require("twilio"); 
 
-var accountSid = process.env.TWILIO_ACCOUNT_SI;
+var accountSid = process.env.TWILIO_ACCOUNT_SID;
 var authToken = process.env.TWILIO_AUTH_TOKEN;
 var createdServiceSid = process.env.TWILIO_CREATED_SERVICE_SID;
 var client = twilio(accountSid, authToken);
