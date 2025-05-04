@@ -78,30 +78,6 @@ async function createVerificationCheck(PhoneNumber, VerificationCode) {
     return verificationCheck
 };
 
-
-//Refresh Token yazılacak apilerin güvenliği için.
-
-async function VerifyPhoneNumberWithAccountFinded(req, res, next){
-    var { EMailAddress } = req.params;
-    var { DialCode, PhoneNumber } = req.body;
-
-    var { error, value } = DialCodePhoneNumberSchema.validate({DialCode, PhoneNumber}, { abortEarly: false });
-    if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
-
-    var filter = { EMailAddress: EMailAddress };
-    var Auth = await User.findOne(filter);
-
-    if( !Auth) return res.status(404).json({ message: " No account found with that email address." });
-    if( Auth.IsTemporary) return res.status(409).json({ message:' Registration is not complete. Please finish signing up.'});
-
-    var AuthPhoneNumber = Auth.DialCode + Auth.PhoneNumber;
-
-    var RequestedPhoneNumber = (DialCode).toString() + (PhoneNumber).toString();
-    if( RequestedPhoneNumber !== AuthPhoneNumber) return res.status(401).json({ message:' The email address matched to the system and the phone number to be verified do not match, please try again or verify by email.'});
-
-    next();
-};  
-
 app.get(
     "/country/codes",
     rateLimiter,
@@ -127,7 +103,7 @@ app.put(
         if( Type === 'Login'){
             var filter = { EMailAddress: EMailAddress};
             var Auth = await User.findOne(filter);
-            console.log("Ön yüzden gelen Password : ", Password);
+
             var PasswordCheck = await SCRYPTCheck(Password, Auth.Password);
             if( !PasswordCheck) return res.status(401).json({ message:' Incorrect password. Please try again.'});
         }
