@@ -53,7 +53,7 @@ async function readCountryCodesJSON() {
 };
 
 async function createVerification(PhoneNumber) {
-    console.log("createdServiceSid : ", createdServiceSid);
+    console.log("createVerification - createdServiceSid : ", createdServiceSid);
     const verification = await client.verify.v2
       .services(createdServiceSid)
       .verifications.create({
@@ -66,6 +66,7 @@ async function createVerification(PhoneNumber) {
 };
 
 async function createVerificationCheck(PhoneNumber, VerificationCode) {
+    console.log("createVerificationCheck - createdServiceSid : ", createdServiceSid);
     const verificationCheck = await client.verify.v2
       .services(createdServiceSid)
       .verificationChecks.create({
