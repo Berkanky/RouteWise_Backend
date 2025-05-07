@@ -43,6 +43,8 @@ const RegisterUserSchema = Joi.object({
   DialCode: Joi.required().messages({
     "any.required": "Dial code is required. ",
   }),
+  PhoneNumberVerified: Joi.boolean().optional(),
+  PhoneNumberVerifySended: Joi.boolean().optional(),
 });
 
 module.exports = RegisterUserSchema;
