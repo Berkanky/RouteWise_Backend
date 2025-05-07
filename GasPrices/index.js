@@ -91,11 +91,11 @@ async function GetFuelPricesTR() {
     }
 };
 
-cron.schedule('11 * * * *', () => {
+cron.schedule('0 11 * * *', () => { 
     GetFuelPricesTR();
-}, {
+  }, {
     scheduled: true,
     timezone: "Europe/Istanbul"
-});
+  });
 
 module.exports = app;
