@@ -165,6 +165,9 @@ app.put(
         if( Type === 'Register'){
             return res.status(200).json({ message:' OTP verification completed successfully, please continue with the registration.'});
         }
+        if( Type === "RegisterComplete"){
+            return res.status(200).json({ message:' OTP verification completed successfully, please continue with the registration.'});
+        }
     })
 );
 

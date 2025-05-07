@@ -91,7 +91,7 @@ async function GetFuelPricesTR() {
     }
 };
 
-cron.schedule('0 11 * * *', () => { 
+cron.schedule('0 11 * * *', () => { // eğer 11'in solunda ki 0'ı kaldırırasn her saat başı dakika 11'de çalışır.
     GetFuelPricesTR();
   }, {
     scheduled: true,
