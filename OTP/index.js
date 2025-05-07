@@ -65,12 +65,12 @@ async function createVerification(PhoneNumber) {
     return verification
 };
 
-async function createVerificationCheck(PhoneNumber, VerificationCode) {
+async function createVerificationCheck(PhoneNumber, VerificationId) {
     console.log("createVerificationCheck - createdServiceSid : ", createdServiceSid);
     const verificationCheck = await client.verify.v2
       .services(createdServiceSid)
       .verificationChecks.create({
-        code: VerificationCode,
+        code: VerificationId,
         to: PhoneNumber,
       });
   
@@ -131,16 +131,16 @@ app.put(
     rateLimiter,
     AuthControl,
     asyncHandler(async(req, res) => {
-        var { EMailAddress, PhoneNumber, VerificationCode, DialCode, Type } = req.body;
+        var { EMailAddress, PhoneNumber, VerificationId, DialCode, Type } = req.body;
 
-        var { error, value } = OTPVerifySchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, VerificationCode: VerificationCode, DialCode: DialCode, Type: Type}, { abortEarly: false });
+        var { error, value } = OTPVerifySchema.validate({ PhoneNumber: PhoneNumber, EMailAddress: EMailAddress, VerificationId: VerificationId, DialCode: DialCode, Type: Type}, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var Auth = req.Auth;
 
         var CustomerPhoneNumber = DialCode.toString() + PhoneNumber.toString();
 
-        var verifiedVerification = await createVerificationCheck(CustomerPhoneNumber, VerificationCode);
+        var verifiedVerification = await createVerificationCheck(CustomerPhoneNumber, VerificationId);
         console.log("/verify/otp/sms : ", JSON.stringify(verifiedVerification));
 
         if(verifiedVerification.status != 'approved') return res.status(400).json({ message:' Verification failed, please try again.'});

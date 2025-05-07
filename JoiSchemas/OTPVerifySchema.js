@@ -7,7 +7,7 @@ const OTPVerifySchema = Joi.object({
   PhoneNumber: Joi.required().messages({
     "any.required": "Phone number is required. ",
   }),
-  VerificationCode: Joi.string().required().messages({
+  VerificationId: Joi.string().required().messages({
     "any.required": "Verification code is required. ",
   }),
   DialCode: Joi.required().messages({

@@ -194,7 +194,7 @@ app.post(
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
         var { RegisterData } = req.body;
-        console.log("Register Data : ", JSON.stringify(RegisterData));
+        
         var Type = 'Register';
 
         var { error, value } = RegisterUserSchema.validate(RegisterData, { abortEarly: false });
