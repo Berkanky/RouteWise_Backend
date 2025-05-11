@@ -6,8 +6,8 @@ async function InvalidTokenControlFunction(req, res, next) {
   
   if(!token) return res.status(401).json({ message: " Authorization token is required." });
 
-  var filter = { UserId: id, JWTToken: token };
-  var tokens = await Token.find(filter);
+  var tokenFilter = { UserId: id, JWTToken: token };
+  var tokens = await Token.find(tokenFilter);
   
   if (tokens.length)  return res.status(401).json({ message: " Invalid or expired token. Please log in again." });
   next();

@@ -595,4 +595,13 @@ app.put(
     })
 );
 
+//Token Control
+app.get(
+    "session/control",
+    InvalidTokenControlFunction,
+    asyncHandler(async(req, res) => {
+        return res.status(200);
+    })
+);  
+
 module.exports = app;
