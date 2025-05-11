@@ -21,6 +21,7 @@ const formatBytes = require("../MyFunctions/FormatFileSize");
 const GetMimeTypeDetail = require("../MyFunctions/GetMimeTypeDetail");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 const PasswordRegex = require("../MyFunctions/PasswordRegex");
+const EMailAddressRegex = require("../MyFunctions/EMailAddressRegex");
 
 //Encryp Fonksiyonlar.
 var SCRYPTEncrypt = require("../EncryptModules/SCRYPTEncrypt");
@@ -51,6 +52,7 @@ const CreateRefreshToken = require("../JWTModules/CreateRefreshToken");
 const User = require("../Schemas/User");
 const AuthToken = require("../Schemas/AuthToken");
 const RefreshToken = require("../Schemas/RefreshToken");
+const InvalidToken = require("../Schemas/InvalidToken");
 
 //Joi Doğrulama Şemaları
 const RegisterUserSchema = require("../JoiSchemas/RegisterUserSchema");
@@ -596,9 +598,11 @@ app.put(
 );
 
 //Token Control
-app.get(
+app.put(
     "session/control",
-    InvalidTokenControlFunction,
+    EMailAddressControl,
+    AuthControl,
+    AuthenticateJWTToken,
     asyncHandler(async(req, res) => {
         return res.status(200);
     })
