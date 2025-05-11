@@ -1,6 +1,7 @@
+require("dotenv").config();
+
 const express = require("express");
 const app = express.Router();
-require("dotenv").config();
 
 //Crypto
 const crypto = require('crypto');
@@ -194,7 +195,7 @@ app.post(
     asyncHandler( async( req, res) => {
         var { EMailAddress } = req.params;
         var { RegisterData } = req.body;
-        
+
         var Type = 'Register';
 
         var { error, value } = RegisterUserSchema.validate(RegisterData, { abortEarly: false });
@@ -418,14 +419,12 @@ app.put(
     AuthControl,
     AuthenticateJWTToken,
     asyncHandler( async(req, res) => {
-        var { EMailAddress } = req.params;
+        var { EMailAddress, Type = 'Logout', Auth = req.Auth } = req.params;
+        
+        var refreshTokenFilter = { UserId: Auth._id.toString()};
 
-        var Type = 'Logout';
-
-        var Auth = req.Auth;
-
-        var filter = { EMailAddress: EMailAddress};
-        var update = {
+        var authFilter = { EMailAddress: EMailAddress};
+        var authUpdate = {
             $set:{
                 Active: false,
                 TwoFAStatus: false
@@ -435,7 +434,9 @@ app.put(
             }
         };
 
-        await User.findOneAndUpdate(filter, update);
+        await User.findOneAndUpdate(authFilter, authUpdate);
+        await RefreshToken.findOneAndDelete(refreshTokenFilter);
+        
         await CreateLog(req, res, Auth._id.toString(), Type, {});
         await CreateInvalidToken(req, res, Auth._id.toString());
 
@@ -477,7 +478,7 @@ app.post(
         return res.status(200).json({ message:' We’ve sent a verification code to your email. Please enter it to continue.'});
     })
 );
-
+ 
 //Şifre yenile 2fa onayla.
 app.post(
     "/set/password/email/confirm/:EMailAddress",
