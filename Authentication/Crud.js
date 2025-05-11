@@ -599,7 +599,7 @@ app.put(
 
 //Token Control
 app.put(
-    "session/control",
+    "session/control/:EMailAddress",
     EMailAddressControl,
     AuthControl,
     AuthenticateJWTToken,
