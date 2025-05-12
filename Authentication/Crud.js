@@ -668,9 +668,9 @@ app.put(
                 mode: TravelMode
             }
         });
-        console.log("Google_Directions API Response : ", response);
+        console.log("Google_Directions API Response : ", response.data);
 
-        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. ', response});
+        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. '});
     })
 );
 //google servisleri entegre edielcek.
