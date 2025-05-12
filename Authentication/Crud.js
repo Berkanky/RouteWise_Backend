@@ -643,7 +643,7 @@ app.put(
 
 var googleAPIKey = process.env.GOOGLE_API_KEY;
 
-app.get(
+app.put(
     "google/directions/:EMailAddress",
     rateLimiter,
     EMailAddressControl,
