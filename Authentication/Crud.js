@@ -644,7 +644,7 @@ app.put(
 var googleAPIKey = process.env.GOOGLE_API_KEY;
 
 app.put(
-    "google/directions/:EMailAddress",
+    "/google/directions/:EMailAddress",
     rateLimiter,
     EMailAddressControl,
     AuthControl,
