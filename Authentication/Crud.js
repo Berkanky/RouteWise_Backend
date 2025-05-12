@@ -673,5 +673,6 @@ app.put(
         return res.status(200).json({ message:' Google yönlendirme servisi başarılı. '});
     })
 );
+//google servisleri entegre edielcek.
 
 module.exports = app;
