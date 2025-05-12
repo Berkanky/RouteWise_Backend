@@ -675,7 +675,7 @@ app.put(
                 mode: TravelMode
             }
         });
-        console.log("Google_Directions API Response : ", response.data);
+        console.log("Google_Directions API Response : ", response);
 
         return res.status(200).json({ message:' Google yönlendirme servisi başarılı. '});
     })
