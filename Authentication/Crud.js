@@ -25,6 +25,7 @@ const GetMimeTypeDetail = require("../MyFunctions/GetMimeTypeDetail");
 const CalculateExpireDate = require("../MyFunctions/CalculateExpireDate");
 const PasswordRegex = require("../MyFunctions/PasswordRegex");
 const EMailAddressRegex = require("../MyFunctions/EMailAddressRegex");
+const DecodeGooglePolyline = require("../MyFunctions/DecodeGooglePolyline");
 
 //Encryp Fonksiyonlar.
 var SCRYPTEncrypt = require("../EncryptModules/SCRYPTEncrypt");
@@ -676,14 +677,16 @@ app.put(
         });
         console.log("Google_Directions API Response : ", response);
 
-        var overview_polyline_points;
+        var overview_polyline_points, decoded_overview_polyline_points;
         if(response.data.status == "OK"){
             overview_polyline_points = response.data.routes[0]["overview_polyline"]["points"];
+            decoded_overview_polyline_points = DecodeGooglePolyline(overview_polyline_points);
             console.log("overview_polyline : ", overview_polyline_points);
+            console.log("decoded_overview_polyline_points : ", decoded_overview_polyline_points);
         }
         
 
-        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. ', overview_polyline_points: overview_polyline_points});
+        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. ', overview_polyline_points, decoded_overview_polyline_points});
     })
 );
 //google servisleri entegre edielcek.
