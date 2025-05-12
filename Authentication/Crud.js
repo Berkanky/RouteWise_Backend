@@ -641,7 +641,6 @@ app.put(
     })  
 );
 
-var googleAPIKey = process.env.GOOGLE_API_KEY;
 
 app.put(
     "/google/directions/:EMailAddress",
@@ -655,6 +654,14 @@ app.put(
         var { error, value } = GoogleDirectionsSchema.validate(req.body, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
+        var googleAPIKey = process.env.GOOGLE_API_KEY;
+        console.log(googleAPIKey);
+        console.log(JSON.stringify({
+                origin: OriginLocation,
+                destination: DestinationLocation,
+                key: googleAPIKey,
+                mode: TravelMode
+            }));
         var OriginLocation = Latitude +','+ Longitude;
         var DestinationLocation = DestinationLocationLatitude + ',' + DestinationLocationLongitude;
 
