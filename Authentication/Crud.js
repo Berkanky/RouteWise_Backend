@@ -3,6 +3,9 @@ require("dotenv").config();
 const express = require("express");
 const app = express.Router();
 
+//axios
+const axios = require('axios');
+
 //Crypto
 const crypto = require('crypto');
 
@@ -53,6 +56,7 @@ const User = require("../Schemas/User");
 const AuthToken = require("../Schemas/AuthToken");
 const RefreshToken = require("../Schemas/RefreshToken");
 const InvalidToken = require("../Schemas/InvalidToken");
+const Log = require("../Schemas/Log");
 
 //Joi Doğrulama Şemaları
 const RegisterUserSchema = require("../JoiSchemas/RegisterUserSchema");
@@ -63,6 +67,7 @@ const AutoLoginSchema = require("../JoiSchemas/AutoLoginSchema");
 const SetPasswordTwoFASchema = require("../JoiSchemas/SetPasswordTwoFASchema");
 const SetPasswordUserSchema = require("../JoiSchemas/SetPasswordUserSchema");
 const LoginPasswordCheckSchema = require("../JoiSchemas/LoginPasswordCheckSchema");
+const GoogleDirectionsSchema = require("../JoiSchemas/GoogleDirectionsSchema");
 
 //Insert fonksiyonları.
 const CreateLog = require("../InsertFunctions/CreateLog");
@@ -597,7 +602,7 @@ app.put(
     })
 );
 
-//Token Control
+//Token Control ----> Geliştirme devam etmekte.
 app.put(
     "/session/control/:EMailAddress",
     EMailAddressControl,
@@ -606,6 +611,67 @@ app.put(
     asyncHandler(async(req, res) => {
         return res.status(200);
     })
-);  
+);
+
+//Hesabı sil -----> Geliştirme devam etmekte.
+app.put(
+    "/delete/account/:EMailAddress",
+    EMailAddressControl,
+    AuthControl,
+    AuthenticateJWTToken,
+    asyncHandler(async(req, res) => {
+        var Auth = req.Auth;
+
+        var AuthTokenFilter = { UserId: Auth._id.toString()};
+        await AuthToken.deleteMany(AuthTokenFilter); 
+        
+        var InvalidTokenFilter = { UserId: Auth._id.toString() };
+        await InvalidToken.deleteMany(InvalidTokenFilter);
+
+        var LogFilter = { UserId: Auth._id.toString() };
+        await Log.deleteMany(LogFilter);
+
+        var RefreshTokenFilter = { UserId: Auth._id.toString() };
+        await RefreshToken.deleteMany(RefreshTokenFilter);
+
+        var AuthFilter = { EMailAddress: req.params.EMailAddress };
+        await User.findOneAndDelete(AuthFilter);
+
+        return res.status(200).json({message:' Account deleted successfully. '});
+    })  
+);
+
+var googleAPIKey = process.env.GOOGLE_API_KEY;
+
+app.get(
+    "google/directions/:EMailAddress",
+    rateLimiter,
+    EMailAddressControl,
+    AuthControl,
+    AuthenticateJWTToken,
+    asyncHandler(async(req, res) => {
+        var { Latitude, Longitude, TravelMode, DestinationLocationLatitude, DestinationLocationLongitude } = req.body;
+        
+        var { error, value } = GoogleDirectionsSchema.validate(req.body, { abortEarly: false });
+        if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
+
+        var OriginLocation = Latitude +','+ Longitude;
+        var DestinationLocation = DestinationLocationLatitude + ',' + DestinationLocationLongitude;
+
+        var google_directions_api_base_url = 'https://maps.googleapis.com/maps/api/directions/json'
+        
+        const response = await axios.get(`${google_directions_api_base_url}`, {
+            params:{
+                origin: OriginLocation,
+                destination: DestinationLocation,
+                key: googleAPIKey,
+                mode: TravelMode
+            }
+        });
+        console.log("Google_Directions API Response : ", JSON.stringify(response));
+
+        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. '});
+    })
+);
 
 module.exports = app;
