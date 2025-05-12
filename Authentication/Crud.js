@@ -670,7 +670,7 @@ app.put(
         });
         console.log("Google_Directions API Response : ", response);
 
-        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. '});
+        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. ', response});
     })
 );
 //google servisleri entegre edielcek.
