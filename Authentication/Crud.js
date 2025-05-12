@@ -677,7 +677,14 @@ app.put(
         });
         console.log("Google_Directions API Response : ", response);
 
-        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. '});
+        var overview_polyline;
+        if(response.status == "OK"){
+            overview_polyline = response.data.routes[0]["overview_polyline"];
+            console.log("overview_polyline : ", overview_polyline);
+        }
+        
+
+        return res.status(200).json({ message:' Google yönlendirme servisi başarılı. ', overview_polyline: overview_polyline});
     })
 );
 //google servisleri entegre edielcek.
