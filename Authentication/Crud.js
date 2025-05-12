@@ -641,7 +641,6 @@ app.put(
     })  
 );
 
-
 app.put(
     "/google/directions/:EMailAddress",
     rateLimiter,
@@ -678,7 +677,7 @@ app.put(
         console.log("Google_Directions API Response : ", response);
 
         var overview_polyline_points;
-        if(response.status == "OK"){
+        if(response.data.status == "OK"){
             overview_polyline_points = response.data.routes[0]["overview_polyline"]["points"];
             console.log("overview_polyline : ", overview_polyline_points);
         }
