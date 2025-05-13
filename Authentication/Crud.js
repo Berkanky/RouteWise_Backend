@@ -415,7 +415,7 @@ app.post(
         updatedAuth.DialCode = aes256Decrypt(updatedAuth.DialCode);
         updatedAuth.PhoneNumber = aes256Decrypt(updatedAuth.PhoneNumber);
 
-        return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken});
+        return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken, GoogleAPIKey: process.env.GOOGLE_API_KEY});
     })
 );
 
@@ -599,49 +599,11 @@ app.put(
 
         await CreateLog(req, res, Auth._id.toString(), Type, {});
 
-        return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token});
+        return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token, GoogleAPIKey: process.env.GOOGLE_API_KEY});
     })
 );
 
-//Token Control ----> Geliştirme devam etmekte.
-app.put(
-    "/session/control/:EMailAddress",
-    EMailAddressControl,
-    AuthControl,
-    AuthenticateJWTToken,
-    asyncHandler(async(req, res) => {
-        return res.status(200);
-    })
-);
-
-//Hesabı sil -----> Geliştirme devam etmekte.
-app.put(
-    "/delete/account/:EMailAddress",
-    EMailAddressControl,
-    AuthControl,
-    AuthenticateJWTToken,
-    asyncHandler(async(req, res) => {
-        var Auth = req.Auth;
-
-        var AuthTokenFilter = { UserId: Auth._id.toString()};
-        await AuthToken.deleteMany(AuthTokenFilter); 
-        
-        var InvalidTokenFilter = { UserId: Auth._id.toString() };
-        await InvalidToken.deleteMany(InvalidTokenFilter);
-
-        var LogFilter = { UserId: Auth._id.toString() };
-        await Log.deleteMany(LogFilter);
-
-        var RefreshTokenFilter = { UserId: Auth._id.toString() };
-        await RefreshToken.deleteMany(RefreshTokenFilter);
-
-        var AuthFilter = { EMailAddress: req.params.EMailAddress };
-        await User.findOneAndDelete(AuthFilter);
-
-        return res.status(200).json({message:' Account deleted successfully. '});
-    })  
-);
-
+//Google Directions
 app.put(
     "/google/directions/:EMailAddress",
     rateLimiter,
@@ -655,13 +617,6 @@ app.put(
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
 
         var googleAPIKey = process.env.GOOGLE_API_KEY;
-        console.log(googleAPIKey);
-        console.log(JSON.stringify({
-                origin: OriginLocation,
-                destination: DestinationLocation,
-                key: googleAPIKey,
-                mode: TravelMode
-            }));
         var OriginLocation = Latitude +','+ Longitude;
         var DestinationLocation = DestinationLocationLatitude + ',' + DestinationLocationLongitude;
 
@@ -675,20 +630,15 @@ app.put(
                 mode: TravelMode
             }
         });
-        console.log("Google_Directions API Response : ", response);
 
         var overview_polyline_points, decoded_overview_polyline_points;
         if(response.data.status == "OK"){
             overview_polyline_points = response.data.routes[0]["overview_polyline"]["points"];
             decoded_overview_polyline_points = DecodeGooglePolyline(overview_polyline_points);
-            console.log("overview_polyline : ", overview_polyline_points);
-            console.log("decoded_overview_polyline_points : ", decoded_overview_polyline_points);
         }
         
-
         return res.status(200).json({ message:' Google yönlendirme servisi başarılı. ', overview_polyline_points, decoded_overview_polyline_points});
     })
 );
-//google servisleri entegre edielcek.
 
 module.exports = app;
