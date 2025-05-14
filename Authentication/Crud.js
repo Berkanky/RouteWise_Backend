@@ -77,6 +77,9 @@ const CreateInvalidToken = require("../InsertFunctions/CreateInvalidToken");
 const CreateRefreshTokenFunction = require("../InsertFunctions/CreateRefreshToken");
 const { Auth } = require("firebase-admin/auth");
 
+//Google_API_Key
+var GoogleAPIKey = process.env.GOOGLE_API_KEY;
+
 function EncryptDeviceDetails(req, res, DeviceDetails){
 
     if(DeviceDetails){
@@ -415,7 +418,7 @@ app.post(
         updatedAuth.DialCode = aes256Decrypt(updatedAuth.DialCode);
         updatedAuth.PhoneNumber = aes256Decrypt(updatedAuth.PhoneNumber);
 
-        return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken, GoogleAPIKey: process.env.GOOGLE_API_KEY});
+        return res.status(200).json({message:' The login process was successful, welcome.', Token, UserData: updatedAuth, RefreshToken: CreatedRefreshToken, GoogleAPIKey});
     })
 );
 
@@ -599,12 +602,12 @@ app.put(
 
         await CreateLog(req, res, Auth._id.toString(), Type, {});
 
-        return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token, GoogleAPIKey: process.env.GOOGLE_API_KEY});
+        return res.status(200).json({ message:' Registered device detected, you are being redirected.', Auth, Token, GoogleAPIKey});
     })
 );
 
 //Google Directions
-app.put(
+app.post(
     "/google/directions/:EMailAddress",
     rateLimiter,
     EMailAddressControl,
@@ -615,26 +618,30 @@ app.put(
         
         var { error, value } = GoogleDirectionsSchema.validate(req.body, { abortEarly: false });
         if( error) return res.status(400).json({errors: error.details.map(detail => detail.message)});
-
-        var googleAPIKey = process.env.GOOGLE_API_KEY;
+        
         var OriginLocation = Latitude +','+ Longitude;
         var DestinationLocation = DestinationLocationLatitude + ',' + DestinationLocationLongitude;
 
-        var google_directions_api_base_url = 'https://maps.googleapis.com/maps/api/directions/json'
-        
+        var google_directions_api_base_url = process.env.GOOGLE_DIRECTIONS_API_URL;
+        if( !google_directions_api_base_url) return res.status(503).json({ message:' Google API url is missing, please try again later.'});
+
         const response = await axios.get(`${google_directions_api_base_url}`, {
             params:{
                 origin: OriginLocation,
                 destination: DestinationLocation,
-                key: googleAPIKey,
+                key: GoogleAPIKey,
                 mode: TravelMode
             }
         });
 
         var overview_polyline_points, decoded_overview_polyline_points;
         if(response.data.status == "OK"){
-            overview_polyline_points = response.data.routes[0]["overview_polyline"]["points"];
-            decoded_overview_polyline_points = DecodeGooglePolyline(overview_polyline_points);
+            overview_polyline_points = response?.data?.routes?.[0]?.overview_polyline?.points;
+            if( overview_polyline_points ) decoded_overview_polyline_points = DecodeGooglePolyline(overview_polyline_points);
+           
+            if( !decoded_overview_polyline_points ) return res.status(500).json({ message:' Failed to create polyline with google directions api, please try again.'});
+        }else{
+            return res.status(400).json({ message:' There was an error with Google service, please try again.'});
         }
         
         return res.status(200).json({ message:' Google yönlendirme servisi başarılı. ', overview_polyline_points, decoded_overview_polyline_points});

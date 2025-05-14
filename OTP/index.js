@@ -45,7 +45,6 @@ var aes256Decrypt = require("../EncryptModules/AES256Decrypt");
 //JWT
 const CreateJWTToken = require("../JWTModules/CreateJWTToken");
 
-
 async function readCountryCodesJSON() {
     var fileContent = await fs.readFile(filePath, 'utf8');
     var Countries = JSON.parse(fileContent);
@@ -83,6 +82,11 @@ app.get(
     rateLimiter,
     asyncHandler(async(req, res) => {
         var Countries = await readCountryCodesJSON();
+        Countries = Countries.sort((a, b) => {
+            var numA = parseInt(a.dial_code.substring(1));
+            var numB = parseInt(b.dial_code.substring(1));
+            return numA - numB;
+        });
         return res.status(200).json({Countries: Countries});
     })
 );
