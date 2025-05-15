@@ -648,4 +648,18 @@ app.post(
     })
 );
 
+//Google places
+app.post(
+    "/google/places/:EMailAddress",
+    rateLimiter,
+    EMailAddressControl,
+    AuthControl,
+    AuthenticateJWTToken,
+    asyncHandler(async(req, res) => {
+        
+        //  
+
+    })
+);
+
 module.exports = app;
